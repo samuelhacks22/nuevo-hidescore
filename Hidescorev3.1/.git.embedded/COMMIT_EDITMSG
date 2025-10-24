@@ -1,0 +1,4 @@
+Add initial state files for Replit agent
+
+- Created .latest.json to track the latest branch as "main".
+- Added repl_state.bin to store the binary state of the Replit agent.
