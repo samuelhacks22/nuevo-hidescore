@@ -6,7 +6,7 @@ import {
   MessageSquare, Star, TrendingUp, Edit, Trash2
 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
-import { ContentCard } from "@/components/ContentCard";
+import { ContentCard } from "@/components/ui/ContentCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";

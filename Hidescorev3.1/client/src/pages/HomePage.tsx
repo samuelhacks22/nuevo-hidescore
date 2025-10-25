@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Film, TrendingUp, Sparkles } from "lucide-react";
-import { ContentCard } from "@/components/ContentCard";
+import { ContentCard } from "@/components/ui/ContentCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
