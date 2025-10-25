@@ -36,3 +36,8 @@ externalPort = 80
 [[ports]]
 localPort = 35731
 externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["bash", "-c", "cd Hidescorev3.1 && npm run start"]
+build = ["bash", "-c", "cd Hidescorev3.1 && npm run build"]
