@@ -16,8 +16,8 @@ import { Slider } from "@/components/ui/slider";
 import type { Series, Rating } from "@shared/schema";
 
 const GENRES = [
-  "Action", "Adventure", "Animation", "Comedy", "Crime", "Documentary",
-  "Drama", "Fantasy", "Horror", "Mystery", "Romance", "Sci-Fi", "Thriller"
+  "Acción", "Aventura", "Animación", "Comedia", "Crimen", "Documental",
+  "Drama", "Fantasía", "Terror", "Misterio", "Romance", "Ciencia Ficción", "Suspenso"
 ];
 
 const PLATFORMS = [
@@ -45,7 +45,7 @@ export default function SeriesPage() {
 
   const { data: userRatings } = useQuery<Rating[]>({
     queryKey: ["/api/ratings/user"],
-    enabled: false, // Only fetch when user is authenticated
+    enabled: false, // Solo buscar cuando el usuario está autenticado
   });
 
   const getUserRating = (seriesId: string) => {
@@ -64,7 +64,7 @@ export default function SeriesPage() {
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            Explore our collection of TV series
+            Explora nuestra colección de series de TV
           </p>
         </div>
 
@@ -72,18 +72,18 @@ export default function SeriesPage() {
         <div className="mb-8 p-6 bg-card rounded-lg border border-card-border space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <SlidersHorizontal className="w-5 h-5 text-primary" />
-            <h2 className="font-heading font-semibold text-xl">Filters</h2>
+            <h2 className="font-heading font-semibold text-xl">Filtros</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="space-y-2">
-              <Label>Genre</Label>
+              <Label>Género</Label>
               <Select value={selectedGenre} onValueChange={setSelectedGenre}>
                 <SelectTrigger data-testid="select-genre">
-                  <SelectValue placeholder="All Genres" />
+                  <SelectValue placeholder="Todos los Géneros" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Genres</SelectItem>
+                  <SelectItem value="all">Todos los Géneros</SelectItem>
                   {GENRES.map((genre) => (
                     <SelectItem key={genre} value={genre.toLowerCase()}>
                       {genre}
@@ -94,13 +94,13 @@ export default function SeriesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Platform</Label>
+              <Label>Plataforma</Label>
               <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
                 <SelectTrigger data-testid="select-platform">
-                  <SelectValue placeholder="All Platforms" />
+                  <SelectValue placeholder="Todas las Plataformas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Platforms</SelectItem>
+                  <SelectItem value="all">Todas las Plataformas</SelectItem>
                   {PLATFORMS.map((platform) => (
                     <SelectItem key={platform} value={platform.toLowerCase()}>
                       {platform}
@@ -111,17 +111,17 @@ export default function SeriesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Sort By</Label>
+              <Label>Ordenar Por</Label>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger data-testid="select-sort">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="popularity">Popularity</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="recent">Recently Added</SelectItem>
-                  <SelectItem value="year-desc">Year (Newest)</SelectItem>
-                  <SelectItem value="year-asc">Year (Oldest)</SelectItem>
+                  <SelectItem value="popularity">Popularidad</SelectItem>
+                  <SelectItem value="rating">Mejor Calificadas</SelectItem>
+                  <SelectItem value="recent">Agregadas Recientemente</SelectItem>
+                  <SelectItem value="year-desc">Año (Más Nuevas)</SelectItem>
+                  <SelectItem value="year-asc">Año (Más Antiguas)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -139,13 +139,13 @@ export default function SeriesPage() {
                 className="w-full"
                 data-testid="button-reset-filters"
               >
-                Reset Filters
+                Restablecer Filtros
               </Button>
             </div>
           </div>
 
           <div className="space-y-4">
-            <Label>Release Year: {yearRange[0]} - {yearRange[1]}</Label>
+            <Label>Año de Lanzamiento: {yearRange[0]} - {yearRange[1]}</Label>
             <Slider
               value={yearRange}
               onValueChange={(value) => setYearRange(value as [number, number])}
@@ -158,7 +158,7 @@ export default function SeriesPage() {
           </div>
 
           <div className="space-y-4">
-            <Label>Minimum Rating: {ratingRange[0].toFixed(1)} - {ratingRange[1].toFixed(1)}</Label>
+            <Label>Calificación Mínima: {ratingRange[0].toFixed(1)} - {ratingRange[1].toFixed(1)}</Label>
             <Slider
               value={ratingRange}
               onValueChange={(value) => setRatingRange(value as [number, number])}
@@ -174,7 +174,7 @@ export default function SeriesPage() {
         {/* Results */}
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading..." : `${series?.length || 0} series found`}
+            {isLoading ? "Cargando..." : `${series?.length || 0} series encontradas`}
           </p>
         </div>
 
@@ -197,7 +197,7 @@ export default function SeriesPage() {
         ) : (
           <div className="text-center py-16 text-muted-foreground">
             <Tv className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-lg">No series found matching your filters</p>
+            <p className="text-lg">No se encontraron series que coincidan con tus filtros</p>
           </div>
         )}
       </div>

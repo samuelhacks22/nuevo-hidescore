@@ -62,7 +62,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [endpoint, id] });
       queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/ratings`] });
-      toast({ title: "Rating submitted successfully!" });
+      toast({ title: "¡Calificación enviada exitosamente!" });
       setUserRating(0);
       setReview("");
     },
@@ -76,7 +76,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/comments`] });
-      toast({ title: "Comment posted successfully!" });
+      toast({ title: "¡Comentario publicado exitosamente!" });
       setComment("");
     },
   });
@@ -138,16 +138,16 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
             {/* Quick Stats */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Rating</CardTitle>
+                <CardTitle className="text-lg">Calificación</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-primary mb-2" data-testid="average-rating">
-                    {content.averageRating > 0 ? content.averageRating.toFixed(1) : 'N/A'}
+                    {content.averageRating > 0 ? content.averageRating.toFixed(1) : 'N/D'}
                   </div>
                   <StarRating rating={content.averageRating} size="lg" className="justify-center mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {content.ratingCount} {content.ratingCount === 1 ? 'rating' : 'ratings'}
+                    {content.ratingCount} {content.ratingCount === 1 ? 'calificación' : 'calificaciones'}
                   </p>
                 </div>
               </CardContent>
@@ -176,7 +176,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                 {!isMovie && 'seasons' in content && (
                   <Badge variant="outline" className="text-base">
                     <Tv className="w-4 h-4 mr-2" />
-                    {content.seasons} {content.seasons === 1 ? 'Season' : 'Seasons'}
+                    {content.seasons} {content.seasons === 1 ? 'Temporada' : 'Temporadas'}
                   </Badge>
                 )}
               </div>
@@ -198,7 +198,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
               {content.platform.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-heading font-semibold text-sm text-muted-foreground mb-2">
-                    Available on
+                    Disponible en
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {content.platform.map((p) => (
@@ -214,7 +214,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
             {/* Technical Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Details</CardTitle>
+                <CardTitle>Detalles</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {isMovie && 'director' in content && content.director && (
@@ -225,37 +225,37 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                 )}
                 {!isMovie && 'creator' in content && content.creator && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Creator</p>
+                    <p className="text-sm text-muted-foreground mb-1">Creador</p>
                     <p className="font-medium">{content.creator}</p>
                   </div>
                 )}
                 {content.cast.length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Cast</p>
+                    <p className="text-sm text-muted-foreground mb-1">Elenco</p>
                     <p className="font-medium">{content.cast.slice(0, 3).join(", ")}</p>
                   </div>
                 )}
                 {content.language && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Language</p>
+                    <p className="text-sm text-muted-foreground mb-1">Idioma</p>
                     <p className="font-medium">{content.language}</p>
                   </div>
                 )}
                 {content.country && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Country</p>
+                    <p className="text-sm text-muted-foreground mb-1">País</p>
                     <p className="font-medium">{content.country}</p>
                   </div>
                 )}
                 {isMovie && 'budget' in content && content.budget && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Budget</p>
+                    <p className="text-sm text-muted-foreground mb-1">Presupuesto</p>
                     <p className="font-medium">${parseFloat(content.budget).toLocaleString()}</p>
                   </div>
                 )}
                 {isMovie && 'revenue' in content && content.revenue && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Revenue</p>
+                    <p className="text-sm text-muted-foreground mb-1">Ingresos</p>
                     <p className="font-medium">${parseFloat(content.revenue).toLocaleString()}</p>
                   </div>
                 )}
@@ -269,7 +269,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
           <Card className="mb-12">
             <CardHeader>
               <CardTitle>
-                {userRatingData ? 'Your Rating' : `Rate this ${type}`}
+                {userRatingData ? 'Tu Calificación' : `Califica est${type === 'movie' ? 'a' : 'e'} ${type}`}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -291,7 +291,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                     />
                   </div>
                   <Textarea
-                    placeholder="Write your review (optional)"
+                    placeholder="Escribe tu reseña (opcional)"
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                     className="min-h-24"
@@ -302,7 +302,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                     disabled={userRating === 0 || ratingMutation.isPending}
                     data-testid="button-submit-rating"
                   >
-                    {ratingMutation.isPending ? "Submitting..." : "Submit Rating"}
+                    {ratingMutation.isPending ? "Enviando..." : "Enviar Calificación"}
                   </Button>
                 </>
               )}
@@ -315,14 +315,14 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
-              Comments ({comments?.length || 0})
+              Comentarios ({comments?.length || 0})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {user && (
               <div className="space-y-4">
                 <Textarea
-                  placeholder="Share your thoughts..."
+                  placeholder="Comparte tus pensamientos..."
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   className="min-h-24"
@@ -333,7 +333,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                   disabled={!comment.trim() || commentMutation.isPending}
                   data-testid="button-submit-comment"
                 >
-                  {commentMutation.isPending ? "Posting..." : "Post Comment"}
+                  {commentMutation.isPending ? "Publicando..." : "Publicar Comentario"}
                 </Button>
               </div>
             )}
@@ -351,7 +351,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-medium">User</span>
+                        <span className="font-medium">Usuario</span>
                         <span className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
                         </span>
@@ -362,7 +362,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                 ))
               ) : (
                 <p className="text-center text-muted-foreground py-8">
-                  No comments yet. Be the first to share your thoughts!
+                  Aún no hay comentarios. ¡Sé el primero en compartir tus pensamientos!
                 </p>
               )}
             </div>
@@ -372,7 +372,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
         {/* Similar Content */}
         {similar && similar.length > 0 && (
           <div>
-            <h2 className="font-heading font-bold text-3xl mb-6">Similar {type === 'movie' ? 'Movies' : 'Series'}</h2>
+            <h2 className="font-heading font-bold text-3xl mb-6">{type === 'movie' ? 'Películas Similares' : 'Series Similares'}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {similar.slice(0, 4).map((item) => (
                 <ContentCard

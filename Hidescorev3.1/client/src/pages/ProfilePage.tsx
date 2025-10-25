@@ -54,7 +54,7 @@ export default function ProfilePage() {
                 
                 {user.isAdmin && (
                   <Badge className="bg-accent text-accent-foreground mb-4">
-                    Admin
+                    Administrador
                   </Badge>
                 )}
 
@@ -65,7 +65,7 @@ export default function ProfilePage() {
                       <p className="font-semibold" data-testid="stat-ratings-count">
                         {userRatings?.length || 0}
                       </p>
-                      <p className="text-muted-foreground">Ratings</p>
+                      <p className="text-muted-foreground">Calificaciones</p>
                     </div>
                   </div>
 
@@ -75,7 +75,7 @@ export default function ProfilePage() {
                       <p className="font-semibold" data-testid="stat-comments-count">
                         {userComments?.length || 0}
                       </p>
-                      <p className="text-muted-foreground">Comments</p>
+                      <p className="text-muted-foreground">Comentarios</p>
                     </div>
                   </div>
 
@@ -85,7 +85,7 @@ export default function ProfilePage() {
                       <p className="font-semibold" data-testid="stat-average-rating">
                         {averageRating.toFixed(1)}
                       </p>
-                      <p className="text-muted-foreground">Avg Rating</p>
+                      <p className="text-muted-foreground">Promedio</p>
                     </div>
                   </div>
 
@@ -95,7 +95,7 @@ export default function ProfilePage() {
                       <p className="font-semibold">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </p>
-                      <p className="text-muted-foreground">Joined</p>
+                      <p className="text-muted-foreground">Se Unió</p>
                     </div>
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
 
         {/* User Ratings */}
         <div className="mb-12">
-          <h2 className="font-heading font-bold text-3xl mb-6">Your Ratings</h2>
+          <h2 className="font-heading font-bold text-3xl mb-6">Tus Calificaciones</h2>
           {userRatings && userRatings.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {userRatings.map((rating) => {
@@ -129,8 +129,8 @@ export default function ProfilePage() {
             <Card>
               <CardContent className="py-16 text-center text-muted-foreground">
                 <Star className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">You haven't rated any content yet</p>
-                <p className="text-sm mt-2">Start rating movies and series to see them here!</p>
+                <p className="text-lg">Aún no has calificado ningún contenido</p>
+                <p className="text-sm mt-2">¡Comienza a calificar películas y series para verlas aquí!</p>
               </CardContent>
             </Card>
           )}
@@ -138,7 +138,7 @@ export default function ProfilePage() {
 
         {/* User Comments */}
         <div>
-          <h2 className="font-heading font-bold text-3xl mb-6">Your Comments</h2>
+          <h2 className="font-heading font-bold text-3xl mb-6">Tus Comentarios</h2>
           {userComments && userComments.length > 0 ? (
             <div className="space-y-4">
               {userComments.map((comment) => (
@@ -156,8 +156,8 @@ export default function ProfilePage() {
             <Card>
               <CardContent className="py-16 text-center text-muted-foreground">
                 <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">You haven't posted any comments yet</p>
-                <p className="text-sm mt-2">Share your thoughts on movies and series!</p>
+                <p className="text-lg">Aún no has publicado ningún comentario</p>
+                <p className="text-sm mt-2">¡Comparte tus pensamientos sobre películas y series!</p>
               </CardContent>
             </Card>
           )}

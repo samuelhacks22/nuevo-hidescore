@@ -25,7 +25,7 @@ export default function HomePage() {
 
   const { data: userRatings } = useQuery<Rating[]>({
     queryKey: ["/api/ratings/user"],
-    enabled: false, // Only fetch when user is authenticated
+    enabled: false, // Solo buscar cuando el usuario está autenticado
   });
 
   const getUserRating = (contentId: string, type: 'movie' | 'series') => {
@@ -45,11 +45,11 @@ export default function HomePage() {
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center space-y-8">
           <div className="space-y-4">
             <h1 className="font-heading font-bold text-5xl md:text-6xl lg:text-7xl" data-testid="text-hero-title">
-              Discover Your Next
-              <span className="block text-primary mt-2">Favorite Film</span>
+              Descubre tu Próxima
+              <span className="block text-primary mt-2">Película Favorita</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              Rate, review, and get personalized recommendations powered by AI
+              Califica, reseña y obtén recomendaciones personalizadas impulsadas por IA
             </p>
           </div>
 
@@ -57,12 +57,12 @@ export default function HomePage() {
             <Link href="/movies">
               <Button size="lg" className="text-lg px-8" data-testid="button-browse-movies">
                 <Film className="w-5 h-5 mr-2" />
-                Browse Movies
+                Explorar Películas
               </Button>
             </Link>
             <Link href="/series">
               <Button size="lg" variant="outline" className="text-lg px-8" data-testid="button-browse-series">
-                Browse Series
+                Explorar Series
               </Button>
             </Link>
           </div>
@@ -79,12 +79,12 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-primary" />
               <h2 className="font-heading font-bold text-3xl" data-testid="text-section-trending-movies">
-                Trending Movies
+                Películas en Tendencia
               </h2>
             </div>
             <Link href="/movies">
               <Button variant="ghost" data-testid="link-view-all-movies">
-                View All
+                Ver Todas
               </Button>
             </Link>
           </div>
@@ -116,12 +116,12 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-primary" />
               <h2 className="font-heading font-bold text-3xl" data-testid="text-section-trending-series">
-                Trending Series
+                Series en Tendencia
               </h2>
             </div>
             <Link href="/series">
               <Button variant="ghost" data-testid="link-view-all-series">
-                View All
+                Ver Todas
               </Button>
             </Link>
           </div>
@@ -154,10 +154,10 @@ export default function HomePage() {
               <Sparkles className="w-8 h-8 text-accent" />
               <div>
                 <h2 className="font-heading font-bold text-3xl" data-testid="text-section-recommendations">
-                  Recommended For You
+                  Recomendado para Ti
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Powered by AI based on your ratings
+                  Impulsado por IA basado en tus calificaciones
                 </p>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function HomePage() {
           ) : (
             <div className="text-center py-16 text-muted-foreground">
               <Sparkles className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Rate some movies to get personalized recommendations!</p>
+              <p className="text-lg">¡Califica algunas películas para obtener recomendaciones personalizadas!</p>
             </div>
           )}
         </div>

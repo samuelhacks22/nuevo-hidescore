@@ -73,12 +73,12 @@ export default function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/movies"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/series"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      toast({ title: "Content deleted successfully" });
+      toast({ title: "Contenido eliminado exitosamente" });
     },
   });
 
   const handleDelete = (type: 'movie' | 'series', id: string) => {
-    if (confirm("Are you sure you want to delete this content?")) {
+    if (confirm("¿Estás seguro de que quieres eliminar este contenido?")) {
       deleteMutation.mutate({ type, id });
     }
   };
@@ -97,11 +97,11 @@ export default function AdminPage() {
           <div className="flex items-center gap-3 mb-4">
             <Settings className="w-10 h-10 text-primary" />
             <h1 className="font-heading font-bold text-4xl md:text-5xl" data-testid="text-page-title">
-              Admin Panel
+              Panel de Administración
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            Manage content and users
+            Gestionar contenido y usuarios
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Movies</CardTitle>
+              <CardTitle className="text-sm font-medium">Total de Películas</CardTitle>
               <Film className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -121,7 +121,7 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Series</CardTitle>
+              <CardTitle className="text-sm font-medium">Total de Series</CardTitle>
               <Tv className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -133,7 +133,7 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Total de Usuarios</CardTitle>
               <Users className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -145,7 +145,7 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Ratings</CardTitle>
+              <CardTitle className="text-sm font-medium">Total de Calificaciones</CardTitle>
               <BarChart3 className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -159,17 +159,17 @@ export default function AdminPage() {
         {/* Content Management Tabs */}
         <Tabs defaultValue="movies" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="movies">Movies</TabsTrigger>
+            <TabsTrigger value="movies">Películas</TabsTrigger>
             <TabsTrigger value="series">Series</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="users">Usuarios</TabsTrigger>
           </TabsList>
 
           <TabsContent value="movies" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="font-heading font-semibold text-2xl">Manage Movies</h2>
+              <h2 className="font-heading font-semibold text-2xl">Gestionar Películas</h2>
               <Button onClick={() => openAddDialog('movie')} data-testid="button-add-movie">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Movie
+                Añadir Película
               </Button>
             </div>
 
@@ -177,11 +177,11 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Year</TableHead>
-                    <TableHead>Genre</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Año</TableHead>
+                    <TableHead>Género</TableHead>
+                    <TableHead>Calificación</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -215,7 +215,7 @@ export default function AdminPage() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No movies found. Add your first movie to get started!
+                        No se encontraron películas. ¡Añade tu primera película para empezar!
                       </TableCell>
                     </TableRow>
                   )}
@@ -226,10 +226,10 @@ export default function AdminPage() {
 
           <TabsContent value="series" className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="font-heading font-semibold text-2xl">Manage Series</h2>
+              <h2 className="font-heading font-semibold text-2xl">Gestionar Series</h2>
               <Button onClick={() => openAddDialog('series')} data-testid="button-add-series">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Series
+                Añadir Serie
               </Button>
             </div>
 
@@ -237,12 +237,12 @@ export default function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Year</TableHead>
-                    <TableHead>Seasons</TableHead>
-                    <TableHead>Genre</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Año</TableHead>
+                    <TableHead>Temporadas</TableHead>
+                    <TableHead>Género</TableHead>
+                    <TableHead>Calificación</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -277,7 +277,7 @@ export default function AdminPage() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center text-muted-foreground">
-                        No series found. Add your first series to get started!
+                        No se encontraron series. ¡Añade tu primera serie para empezar!
                       </TableCell>
                     </TableRow>
                   )}
@@ -287,15 +287,15 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
-            <h2 className="font-heading font-semibold text-2xl">Manage Users</h2>
+            <h2 className="font-heading font-semibold text-2xl">Gestionar Usuarios</h2>
             <Card>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Nombre</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
+                    <TableHead>Rol</TableHead>
+                    <TableHead>Se Unió</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -306,7 +306,7 @@ export default function AdminPage() {
                         <TableCell>{u.email}</TableCell>
                         <TableCell>
                           <Badge variant={u.isAdmin ? "default" : "secondary"}>
-                            {u.isAdmin ? "Admin" : "User"}
+                            {u.isAdmin ? "Admin" : "Usuario"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -317,7 +317,7 @@ export default function AdminPage() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No users found
+                        No se encontraron usuarios
                       </TableCell>
                     </TableRow>
                   )}

@@ -38,10 +38,10 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/movies", label: "Movies" },
+    { href: "/", label: "Inicio" },
+    { href: "/movies", label: "Películas" },
     { href: "/series", label: "Series" },
-    { href: "/discover", label: "Discover" },
+    { href: "/discover", label: "Descubrir" },
   ];
 
   return (
@@ -87,7 +87,7 @@ export function Navbar() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search movies, series..."
+                placeholder="Buscar películas, series..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-card border-card-border"
@@ -104,7 +104,7 @@ export function Navbar() {
                   <Link href="/admin">
                     <Button variant="outline" size="sm" data-testid="button-admin">
                       <Settings className="w-4 h-4 mr-2" />
-                      Admin
+                      Administrador
                     </Button>
                   </Link>
                 )}
@@ -128,20 +128,20 @@ export function Navbar() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile">
                         <User className="w-4 h-4 mr-2" />
-                        Profile
+                        Perfil
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={signOut} data-testid="button-logout">
                       <LogOut className="w-4 h-4 mr-2" />
-                      Sign Out
+                      Cerrar Sesión
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
             ) : (
               <Button onClick={signInWithGoogle} data-testid="button-signin">
-                {isConfigured ? "Sign In with Google" : "Sign In (Configure Firebase)"}
+                {isConfigured ? "Iniciar Sesión con Google" : "Iniciar Sesión (Configure Firebase)"}
               </Button>
             )}
           </div>
@@ -166,7 +166,7 @@ export function Navbar() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search..."
+                  placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -194,13 +194,13 @@ export function Navbar() {
                   {user.isAdmin && (
                     <Link href="/admin">
                       <a className="block px-3 py-2 rounded-md font-medium hover:bg-muted">
-                        Admin Panel
+                        Panel de Administrador
                       </a>
                     </Link>
                   )}
                   <Link href="/profile">
                     <a className="block px-3 py-2 rounded-md font-medium hover:bg-muted">
-                      Profile
+                      Perfil
                     </a>
                   </Link>
                   <button
@@ -210,12 +210,12 @@ export function Navbar() {
                     }}
                     className="block w-full text-left px-3 py-2 rounded-md font-medium hover:bg-muted"
                   >
-                    Sign Out
+                    Cerrar Sesión
                   </button>
                 </>
               ) : (
                 <Button onClick={signInWithGoogle} className="w-full">
-                  Sign In with Google
+                  Iniciar Sesión con Google
                 </Button>
               )}
             </div>

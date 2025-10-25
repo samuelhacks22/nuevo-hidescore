@@ -105,7 +105,7 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
               ) : (
                 <Tv className="w-4 h-4" />
               )}
-              <span className="capitalize">{content.type}</span>
+              <span className="capitalize">{content.type === 'movie' ? 'Película' : 'Serie'}</span>
             </div>
           </div>
 
