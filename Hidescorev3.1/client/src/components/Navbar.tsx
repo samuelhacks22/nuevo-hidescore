@@ -55,28 +55,26 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/">
-            <div className="flex items-center gap-2 cursor-pointer group" data-testid="link-home">
-              <Film className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
-              <span className="font-heading font-bold text-2xl">
-                Hide<span className="text-primary">score</span>
-              </span>
-            </div>
+          <Link href="/" className="flex items-center gap-2 cursor-pointer group" data-testid="link-home">
+            <Film className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
+            <span className="font-heading font-bold text-2xl">
+              Hide<span className="text-primary">score</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}>
-                <a
-                  className={cn(
-                    "font-medium transition-colors hover:text-primary cursor-pointer",
-                    location === link.href ? "text-primary" : "text-foreground"
-                  )}
-                  data-testid={`link-nav-${link.label.toLowerCase()}`}
-                >
-                  {link.label}
-                </a>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "font-medium transition-colors hover:text-primary cursor-pointer",
+                  location === link.href ? "text-primary" : "text-foreground"
+                )}
+                data-testid={`link-nav-${link.label.toLowerCase()}`}
+              >
+                {link.label}
               </Link>
             ))}
           </div>
@@ -175,33 +173,35 @@ export function Navbar() {
             </form>
             <div className="space-y-2">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  <a
-                    className={cn(
-                      "block px-3 py-2 rounded-md font-medium transition-colors",
-                      location === link.href
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "block px-3 py-2 rounded-md font-medium transition-colors",
+                    location === link.href
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
                 </Link>
               ))}
               {user ? (
                 <>
                   {user.isAdmin && (
-                    <Link href="/admin">
-                      <a className="block px-3 py-2 rounded-md font-medium hover:bg-muted">
-                        Panel de Administrador
-                      </a>
+                    <Link
+                      href="/admin"
+                      className="block px-3 py-2 rounded-md font-medium hover:bg-muted"
+                    >
+                      Panel de Administrador
                     </Link>
                   )}
-                  <Link href="/profile">
-                    <a className="block px-3 py-2 rounded-md font-medium hover:bg-muted">
-                      Perfil
-                    </a>
+                  <Link
+                    href="/profile"
+                    className="block px-3 py-2 rounded-md font-medium hover:bg-muted"
+                  >
+                    Perfil
                   </Link>
                   <button
                     onClick={() => {
