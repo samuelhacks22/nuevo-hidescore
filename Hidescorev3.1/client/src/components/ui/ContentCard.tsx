@@ -47,11 +47,11 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
               {/* Rating */}
-              {content.averageRating > 0 && (
+              {(content.averageRating ?? 0) > 0 && (
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 fill-primary text-primary" />
                   <span className="text-sm font-medium" data-testid="average-rating">
-                    {content.averageRating.toFixed(1)}
+                    {(content.averageRating ?? 0).toFixed(1)}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     ({content.ratingCount})

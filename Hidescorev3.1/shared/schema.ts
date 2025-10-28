@@ -8,6 +8,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   firebaseUid: varchar("firebase_uid").unique(),
+  // Optional password hash for email/password authentication (Neon DB)
+  passwordHash: text("password_hash"),
   email: text("email").notNull().unique(),
   displayName: text("display_name").notNull(),
   photoURL: text("photo_url"),

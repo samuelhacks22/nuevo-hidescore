@@ -197,7 +197,7 @@ export default function AdminPage() {
                             </Badge>
                           ))}
                         </TableCell>
-                        <TableCell>{movie.averageRating.toFixed(1)}</TableCell>
+                        <TableCell>{(movie.averageRating ?? 0).toFixed(1)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button
@@ -259,7 +259,7 @@ export default function AdminPage() {
                             </Badge>
                           ))}
                         </TableCell>
-                        <TableCell>{s.averageRating.toFixed(1)}</TableCell>
+                        <TableCell>{(s.averageRating ?? 0).toFixed(1)}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
                             <Button

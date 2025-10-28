@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertRatingSchema, insertCommentSchema } from "@shared/schema";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
@@ -58,6 +60,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error: any) {
       console.error("Auth sync error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Register with email/password (Neon DB)
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, displayName } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+
+      const existing = await storage.getUserByEmail(email);
+      if (existing) {
+        return res.status(409).json({ error: 'User already exists' });
+      }
+
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const newUser = await storage.createUser({
+        firebaseUid: null as any,
+        email,
+        displayName: displayName || email.split('@')[0],
+        photoURL: null,
+        isAdmin: false,
+        passwordHash,
+      } as any);
+
+      const token = jwt.sign({ userId: newUser.id, email: newUser.email }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '7d' });
+
+      res.json({ user: newUser, token });
+    } catch (error: any) {
+      console.error('Register error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Login with email/password (Neon DB)
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user || !('passwordHash' in user) || !user.passwordHash) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const match = await bcrypt.compare(password, user.passwordHash as string);
+      if (!match) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'dev-secret', { expiresIn: '7d' });
+
+      res.json({ user, token });
+    } catch (error: any) {
+      console.error('Login error:', error);
       res.status(500).json({ error: error.message });
     }
   });

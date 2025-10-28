@@ -143,9 +143,9 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className="text-4xl font-bold text-primary mb-2" data-testid="average-rating">
-                    {content.averageRating > 0 ? content.averageRating.toFixed(1) : 'N/D'}
+                    {(content.averageRating ?? 0) > 0 ? (content.averageRating ?? 0).toFixed(1) : 'N/D'}
                   </div>
-                  <StarRating rating={content.averageRating} size="lg" className="justify-center mb-2" />
+                  <StarRating rating={(content.averageRating ?? 0)} size="lg" className="justify-center mb-2" />
                   <p className="text-sm text-muted-foreground">
                     {content.ratingCount} {content.ratingCount === 1 ? 'calificación' : 'calificaciones'}
                   </p>

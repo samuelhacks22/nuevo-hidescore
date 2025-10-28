@@ -6,9 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import type { Movie, Series, Rating } from "@shared/schema";
 
-interface ContentWithType extends Omit<Movie | Series, 'type'> {
-  type: 'movie' | 'series';
-}
+type ContentWithType = (Movie | Series) & { type: 'movie' | 'series' };
 
 export default function HomePage() {
   const { data: trendingMovies, isLoading: loadingMovies } = useQuery<Movie[]>({

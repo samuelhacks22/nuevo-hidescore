@@ -270,7 +270,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserRatingForContent(userId: string, movieId?: string, seriesId?: string): Promise<Rating | undefined> {
-    let query = db.select().from(ratings).where(eq(ratings.userId, userId));
+  let query: any = db.select().from(ratings).where(eq(ratings.userId, userId));
     
     if (movieId) {
       query = query.where(eq(ratings.movieId, movieId)) as any;

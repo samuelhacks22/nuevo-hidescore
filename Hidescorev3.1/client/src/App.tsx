@@ -13,6 +13,7 @@ import DiscoverPage from "@/pages/DiscoverPage";
 import AdminPage from "@/pages/AdminPage";
 import ProfilePage from "@/pages/ProfilePage";
 import NotFound from "@/pages/not-found";
+import AuthPage from "@/pages/AuthPage";
 
 function Router() {
   return (
@@ -29,6 +30,7 @@ function Router() {
           {() => <ContentDetailPage type="series" />}
         </Route>
         <Route path="/discover" component={DiscoverPage} />
+  <Route path="/auth" component={AuthPage} />
         <Route path="/admin" component={AdminPage} />
         <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />

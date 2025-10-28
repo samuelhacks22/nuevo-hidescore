@@ -19,7 +19,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, signInWithGoogle, signOut, isConfigured } = useAuth();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -137,9 +137,9 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
-            ) : (
-              <Button onClick={signInWithGoogle} data-testid="button-signin">
-                {isConfigured ? "Iniciar Sesión con Google" : "Iniciar Sesión (Configure Firebase)"}
+              ) : (
+              <Button onClick={() => setLocation('/auth')} data-testid="button-signin">
+                Iniciar Sesión
               </Button>
             )}
           </div>
@@ -214,8 +214,8 @@ export function Navbar() {
                   </button>
                 </>
               ) : (
-                <Button onClick={signInWithGoogle} className="w-full">
-                  Iniciar Sesión con Google
+                <Button onClick={() => setLocation('/auth')} className="w-full">
+                  Iniciar Sesión
                 </Button>
               )}
             </div>
