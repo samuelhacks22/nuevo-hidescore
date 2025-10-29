@@ -110,27 +110,25 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full" data-testid="button-user-menu">
                       <Avatar>
-                        <AvatarImage src={user.photoURL || undefined} />
                         <AvatarFallback>
-                          {user.displayName.charAt(0).toUpperCase()}
+                          {user.email.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium" data-testid="text-username">{user.displayName}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">
+                      <Link href="/profile" className="w-full flex items-center">
                         <User className="w-4 h-4 mr-2" />
-                        Perfil
+                        Mi Perfil
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut} data-testid="button-logout">
+                    <DropdownMenuItem onClick={signOut} data-testid="button-logout" className="text-destructive">
                       <LogOut className="w-4 h-4 mr-2" />
                       Cerrar Sesión
                     </DropdownMenuItem>
@@ -138,9 +136,14 @@ export function Navbar() {
                 </DropdownMenu>
               </>
               ) : (
-              <Button onClick={() => setLocation('/auth')} data-testid="button-signin">
-                Iniciar Sesión
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setLocation('/register')} data-testid="button-register">
+                  Registrarse
+                </Button>
+                <Button onClick={() => setLocation('/login')} data-testid="button-signin">
+                  Iniciar Sesión
+                </Button>
+              </div>
             )}
           </div>
 
@@ -197,26 +200,45 @@ export function Navbar() {
                       Panel de Administrador
                     </Link>
                   )}
-                  <Link
-                    href="/profile"
-                    className="block px-3 py-2 rounded-md font-medium hover:bg-muted"
-                  >
-                    Perfil
-                  </Link>
-                  <button
-                    onClick={() => {
-                      signOut();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md font-medium hover:bg-muted"
-                  >
-                    Cerrar Sesión
-                  </button>
+                  <div className="mt-4 space-y-2">
+                    <div className="px-3 py-1.5">
+                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      className="flex items-center px-3 py-2 rounded-md font-medium hover:bg-muted"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Mi Perfil
+                    </Link>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center w-full text-left px-3 py-2 rounded-md font-medium hover:bg-muted text-destructive"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Cerrar Sesión
+                    </button>
+                  </div>
                 </>
               ) : (
-                <Button onClick={() => setLocation('/auth')} className="w-full">
-                  Iniciar Sesión
-                </Button>
+                <div className="mt-4 space-y-2">
+                  <Button onClick={() => {
+                    setLocation('/register');
+                    setMobileMenuOpen(false);
+                  }} className="w-full">
+                    Registrarse
+                  </Button>
+                  <Button onClick={() => {
+                    setLocation('/login');
+                    setMobileMenuOpen(false);
+                  }} variant="outline" className="w-full">
+                    Iniciar Sesión
+                  </Button>
+                </div>
               )}
             </div>
           </div>

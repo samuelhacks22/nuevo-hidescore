@@ -11,10 +11,8 @@ import { eq, and, or, desc, asc, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
-  getUser(id: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
 
   // Movies
@@ -70,24 +68,14 @@ export interface SeriesFilters {
 
 export class DatabaseStorage implements IStorage {
   // Users
-  async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
-  }
-
-  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.firebaseUid, firebaseUid));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -106,10 +94,10 @@ export class DatabaseStorage implements IStorage {
 
     if (filters) {
       if (filters.genre && filters.genre !== 'all') {
-        conditions.push(sql`${filters.genre} = ANY(${movies.genre})`);
+        conditions.push(sql`${movies.genre} && ARRAY[${filters.genre}]::text[]`);
       }
       if (filters.platform && filters.platform !== 'all') {
-        conditions.push(sql`${filters.platform} = ANY(${movies.platform})`);
+        conditions.push(sql`${movies.platform} && ARRAY[${filters.platform}]::text[]`);
       }
       if (filters.yearFrom) {
         conditions.push(gte(movies.releaseYear, filters.yearFrom));
@@ -184,10 +172,10 @@ export class DatabaseStorage implements IStorage {
 
     if (filters) {
       if (filters.genre && filters.genre !== 'all') {
-        conditions.push(sql`${filters.genre} = ANY(${series.genre})`);
+        conditions.push(sql`${series.genre} && ARRAY[${filters.genre}]::text[]`);
       }
       if (filters.platform && filters.platform !== 'all') {
-        conditions.push(sql`${filters.platform} = ANY(${series.platform})`);
+        conditions.push(sql`${series.platform} && ARRAY[${filters.platform}]::text[]`);
       }
       if (filters.yearFrom) {
         conditions.push(gte(series.releaseYear, filters.yearFrom));

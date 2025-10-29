@@ -3,10 +3,10 @@ import { useLocation } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AuthPage() {
+export default function RegisterPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -27,7 +27,7 @@ export default function AuthPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/users', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -37,11 +37,12 @@ export default function AuthPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Error al crear el usuario');
+        const error = await response.json();
+        throw new Error(error.error || 'Error al crear el usuario');
       }
 
       toast({ title: 'Usuario creado exitosamente' });
-      setLocation('/');
+      setLocation('/login');
     } catch (err: any) {
       toast({ title: 'Error', description: err?.message || 'Algo salió mal', variant: 'destructive' });
     } finally {
@@ -80,17 +81,23 @@ export default function AuthPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-4">
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Procesando...' : 'Crear cuenta'}
-              </Button>
-              <p className="text-sm text-muted-foreground text-center">
-                Esta es una versión simplificada sin autenticación.
-                Solo necesitamos tu email para identificarte.
-              </p>
-            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Procesando...' : 'Crear cuenta'}
+            </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <p className="text-sm text-muted-foreground text-center">
+            Esta es una versión simplificada sin autenticación.
+            Solo necesitamos tu email para identificarte.
+          </p>
+          <div className="text-sm text-center">
+            ¿Ya tienes una cuenta?{" "}
+            <Button variant="ghost" className="p-0" onClick={() => setLocation('/login')}>
+              Iniciar sesión
+            </Button>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );

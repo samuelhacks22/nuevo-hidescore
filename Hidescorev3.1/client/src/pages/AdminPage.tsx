@@ -1,20 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Settings, Film, Tv, Users, Plus, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -25,25 +13,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
 import type { Movie, Series, User } from "@shared/schema";
 
 export default function AdminPage() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingContent, setEditingContent] = useState<any>(null);
   const [contentType, setContentType] = useState<'movie' | 'series'>('movie');
-
-  // Redirect if not admin
-  if (user && !user.isAdmin) {
-    setLocation("/");
-    return null;
-  }
 
   const { data: movies } = useQuery<Movie[]>({
     queryKey: ["/api/admin/movies"],
@@ -81,12 +57,6 @@ export default function AdminPage() {
     if (confirm("¿Estás seguro de que quieres eliminar este contenido?")) {
       deleteMutation.mutate({ type, id });
     }
-  };
-
-  const openAddDialog = (type: 'movie' | 'series') => {
-    setContentType(type);
-    setEditingContent(null);
-    setDialogOpen(true);
   };
 
   return (
@@ -167,7 +137,13 @@ export default function AdminPage() {
           <TabsContent value="movies" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Películas</h2>
-              <Button onClick={() => openAddDialog('movie')} data-testid="button-add-movie">
+              <Button 
+                onClick={() => toast({ 
+                  title: "Función deshabilitada", 
+                  description: "La función de agregar películas está temporalmente deshabilitada" 
+                })} 
+                data-testid="button-add-movie"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Añadir Película
               </Button>
@@ -227,7 +203,13 @@ export default function AdminPage() {
           <TabsContent value="series" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Series</h2>
-              <Button onClick={() => openAddDialog('series')} data-testid="button-add-series">
+              <Button 
+                onClick={() => toast({ 
+                  title: "Función deshabilitada", 
+                  description: "La función de agregar series está temporalmente deshabilitada" 
+                })} 
+                data-testid="button-add-series"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Añadir Serie
               </Button>
@@ -293,7 +275,6 @@ export default function AdminPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nombre</TableHead>
-                    <TableHead>Email</TableHead>
                     <TableHead>Rol</TableHead>
                     <TableHead>Se Unió</TableHead>
                   </TableRow>
@@ -303,7 +284,6 @@ export default function AdminPage() {
                     users.map((u) => (
                       <TableRow key={u.id}>
                         <TableCell className="font-medium">{u.displayName}</TableCell>
-                        <TableCell>{u.email}</TableCell>
                         <TableCell>
                           <Badge variant={u.isAdmin ? "default" : "secondary"}>
                             {u.isAdmin ? "Admin" : "Usuario"}
@@ -316,7 +296,7 @@ export default function AdminPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      <TableCell colSpan={3} className="text-center text-muted-foreground">
                         No se encontraron usuarios
                       </TableCell>
                     </TableRow>
