@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3 } from "lucide-react";
+import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,11 +15,19 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { MovieDialog } from "@/components/admin/MovieDialog";
+import { SeriesDialog } from "@/components/admin/SeriesDialog";
+import { UserDialog } from "@/components/admin/UserDialog";
 import type { Movie, Series, User } from "@shared/schema";
 
 export default function AdminPage() {
   const { toast } = useToast();
-  const [contentType, setContentType] = useState<'movie' | 'series'>('movie');
+  const [movieDialogOpen, setMovieDialogOpen] = useState(false);
+  const [movieToEdit, setMovieToEdit] = useState<Movie | undefined>();
+  const [seriesDialogOpen, setSeriesDialogOpen] = useState(false);
+  const [seriesToEdit, setSeriesToEdit] = useState<Series | undefined>();
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | undefined>();
 
   const { data: movies } = useQuery<Movie[]>({
     queryKey: ["/api/admin/movies"],
@@ -42,7 +50,7 @@ export default function AdminPage() {
     queryKey: ["/api/admin/stats"],
   });
 
-  const deleteMutation = useMutation({
+  const deleteContentMutation = useMutation({
     mutationFn: ({ type, id }: { type: 'movie' | 'series'; id: string }) =>
       apiRequest("DELETE", `/api/admin/${type === 'movie' ? 'movies' : 'series'}/${id}`, {}),
     onSuccess: () => {
@@ -53,9 +61,123 @@ export default function AdminPage() {
     },
   });
 
-  const handleDelete = (type: 'movie' | 'series', id: string) => {
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: string) => apiRequest("DELETE", `/api/admin/users/${id}`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      toast({ title: "Usuario eliminado exitosamente" });
+    },
+  });
+
+  type CreateMovieData = {
+    title: string;
+    description: string;
+    releaseYear: number;
+    genre: string[];
+    platform: string[];
+    cast: string[];
+    posterUrl: string | null;
+    director: string | null;
+    runtime: number | null;
+    language: string | null;
+    country: string | null;
+    budget: number | null;
+    revenue: number | null;
+  };
+
+  type CreateSeriesData = {
+    title: string;
+    description: string;
+    releaseYear: number;
+    genre: string[];
+    platform: string[];
+    cast: string[];
+    posterUrl: string | null;
+    language: string | null;
+    country: string | null;
+    seasons: number;
+    episodes: number;
+    endYear: number | null;
+    creator: string | null;
+  };
+
+  type CreateUserData = {
+    email: string;
+    displayName: string;
+    rank: "user" | "admin";
+  };
+
+  const createMovieMutation = useMutation({
+    mutationFn: (data: CreateMovieData) =>
+      apiRequest("POST", "/api/admin/movies", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/movies"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      toast({ title: "Película creada exitosamente" });
+      setMovieDialogOpen(false);
+    },
+  });
+
+  const updateMovieMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateMovieData> }) =>
+      apiRequest("PUT", `/api/admin/movies/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/movies"] });
+      toast({ title: "Película actualizada exitosamente" });
+      setMovieDialogOpen(false);
+    },
+  });
+
+  const createSeriesMutation = useMutation({
+    mutationFn: (data: CreateSeriesData) =>
+      apiRequest("POST", "/api/admin/series", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/series"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      toast({ title: "Serie creada exitosamente" });
+      setSeriesDialogOpen(false);
+    },
+  });
+
+  const updateSeriesMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateSeriesData> }) =>
+      apiRequest("PUT", `/api/admin/series/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/series"] });
+      toast({ title: "Serie actualizada exitosamente" });
+      setSeriesDialogOpen(false);
+    },
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: (data: CreateUserData) =>
+      apiRequest("POST", "/api/admin/users", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      toast({ title: "Usuario creado exitosamente" });
+      setUserDialogOpen(false);
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateUserData> }) =>
+      apiRequest("PUT", `/api/admin/users/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      toast({ title: "Usuario actualizado exitosamente" });
+      setUserDialogOpen(false);
+    },
+  });
+
+  const handleDelete = (type: 'movie' | 'series' | 'user', id: string) => {
     if (confirm("¿Estás seguro de que quieres eliminar este contenido?")) {
-      deleteMutation.mutate({ type, id });
+      if (type === 'user') {
+        deleteUserMutation.mutate(id);
+      } else {
+        deleteContentMutation.mutate({ type, id });
+      }
     }
   };
 
@@ -138,10 +260,10 @@ export default function AdminPage() {
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Películas</h2>
               <Button 
-                onClick={() => toast({ 
-                  title: "Función deshabilitada", 
-                  description: "La función de agregar películas está temporalmente deshabilitada" 
-                })} 
+                onClick={() => {
+                  setMovieToEdit(undefined);
+                  setMovieDialogOpen(true);
+                }}
                 data-testid="button-add-movie"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -179,6 +301,17 @@ export default function AdminPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => {
+                                setMovieToEdit(movie);
+                                setMovieDialogOpen(true);
+                              }}
+                              data-testid={`button-edit-movie-${movie.id}`}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDelete('movie', movie.id)}
                               data-testid={`button-delete-movie-${movie.id}`}
                             >
@@ -204,10 +337,10 @@ export default function AdminPage() {
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Series</h2>
               <Button 
-                onClick={() => toast({ 
-                  title: "Función deshabilitada", 
-                  description: "La función de agregar series está temporalmente deshabilitada" 
-                })} 
+                onClick={() => {
+                  setSeriesToEdit(undefined);
+                  setSeriesDialogOpen(true);
+                }}
                 data-testid="button-add-series"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -247,6 +380,17 @@ export default function AdminPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => {
+                                setSeriesToEdit(s);
+                                setSeriesDialogOpen(true);
+                              }}
+                              data-testid={`button-edit-series-${s.id}`}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDelete('series', s.id)}
                               data-testid={`button-delete-series-${s.id}`}
                             >
@@ -269,7 +413,19 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
-            <h2 className="font-heading font-semibold text-2xl">Gestionar Usuarios</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="font-heading font-semibold text-2xl">Gestionar Usuarios</h2>
+              <Button 
+                onClick={() => {
+                  setUserToEdit(undefined);
+                  setUserDialogOpen(true);
+                }}
+                data-testid="button-add-user"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Añadir Usuario
+              </Button>
+            </div>
             <Card>
               <Table>
                 <TableHeader>
@@ -277,6 +433,7 @@ export default function AdminPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Rol</TableHead>
                     <TableHead>Se Unió</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -297,11 +454,34 @@ export default function AdminPage() {
                         <TableCell>
                           {new Date(u.createdAt).toLocaleDateString()}
                         </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setUserToEdit(u);
+                                setUserDialogOpen(true);
+                              }}
+                              data-testid={`button-edit-user-${u.id}`}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete('user', u.id)}
+                              data-testid={`button-delete-user-${u.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
                         No se encontraron usuarios
                       </TableCell>
                     </TableRow>
@@ -312,6 +492,64 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <MovieDialog 
+        open={movieDialogOpen} 
+        onOpenChange={setMovieDialogOpen} 
+        onSubmit={async (data) => {
+          const movieData = {
+            ...data,
+            posterUrl: data.posterUrl || null,
+            director: data.director || null,
+            runtime: data.runtime || null,
+            language: data.language || null,
+            country: data.country || null,
+            budget: null,
+            revenue: null,
+          };
+          if (movieToEdit) {
+            await updateMovieMutation.mutateAsync({ id: movieToEdit.id, data: movieData });
+          } else {
+            await createMovieMutation.mutateAsync(movieData);
+          }
+        }}
+        movie={movieToEdit}
+      />
+
+      <SeriesDialog 
+        open={seriesDialogOpen} 
+        onOpenChange={setSeriesDialogOpen}
+        onSubmit={async (data) => {
+          const seriesData = {
+            ...data,
+            posterUrl: data.posterUrl || null,
+            language: data.language || null,
+            country: data.country || null,
+            endYear: data.endYear || null,
+            creator: data.creator || null,
+          };
+          if (seriesToEdit) {
+            await updateSeriesMutation.mutateAsync({ id: seriesToEdit.id, data: seriesData });
+          } else {
+            await createSeriesMutation.mutateAsync(seriesData);
+          }
+        }}
+        series={seriesToEdit}
+      />
+
+      <UserDialog 
+        open={userDialogOpen} 
+        onOpenChange={setUserDialogOpen}
+        onSubmit={async (data) => {
+          if (userToEdit) {
+            await updateUserMutation.mutateAsync({ id: userToEdit.id, data });
+          } else {
+            await createUserMutation.mutateAsync(data);
+          }
+        }}
+        user={userToEdit}
+      />
     </div>
   );
 }

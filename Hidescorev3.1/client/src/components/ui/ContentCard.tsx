@@ -1,5 +1,14 @@
 import { Link } from "wouter";
 import { Film, Tv, Star } from "lucide-react";
+import { useState } from "react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { StarRating } from "@/components/StarRating";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -14,6 +23,48 @@ interface ContentCardProps {
 export function ContentCard({ content, userRating, className }: ContentCardProps) {
   const isMovie = content.type === 'movie';
   const detailPath = `/${content.type}/${content.id}`;
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const [rateOpen, setRateOpen] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [localRating, setLocalRating] = useState<number>(0);
+  const [localReview, setLocalReview] = useState<string>("");
+  const [localComment, setLocalComment] = useState<string>("");
+
+  const ratingMutation = useMutation({
+    mutationFn: (data: { rating: number; review?: string }) =>
+      apiRequest("POST", "/api/ratings", {
+        userId: user?.id,
+        movieId: isMovie ? content.id : undefined,
+        seriesId: !isMovie ? content.id : undefined,
+        ...data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${isMovie ? 'movies' : 'series'}`, content.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${isMovie ? 'movies' : 'series'}/${content.id}/ratings`] });
+      toast({ title: "¡Calificación enviada!" });
+      setRateOpen(false);
+      setLocalRating(0);
+      setLocalReview("");
+    },
+  });
+
+  const commentMutation = useMutation({
+    mutationFn: (text: string) =>
+      apiRequest("POST", "/api/comments", {
+        userId: user?.id,
+        movieId: isMovie ? content.id : undefined,
+        seriesId: !isMovie ? content.id : undefined,
+        content: text,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${isMovie ? 'movies' : 'series'}/${content.id}/comments`] });
+      toast({ title: "Comentario publicado" });
+      setCommentOpen(false);
+      setLocalComment("");
+    },
+  });
   
   return (
     <Link href={detailPath}>
@@ -74,6 +125,60 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
                   ))}
                 </div>
               )}
+
+              {/* Quick actions: rate & comment (prevent link navigation on click) */}
+              <div className="absolute right-3 bottom-3 flex items-center gap-2">
+                <Dialog open={rateOpen} onOpenChange={(v) => { setRateOpen(v); if (v && !user) { setRateOpen(false); toast({ title: 'Debes iniciar sesión', description: 'Inicia sesión para dejar una calificación' }); } }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="secondary" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRateOpen(true); }}>
+                      Calificar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Calificar {content.title}</DialogTitle>
+                      <DialogDescription>Deja una calificación y una reseña opcional.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <StarRating rating={localRating} interactive onRatingChange={setLocalRating} />
+                      <Textarea placeholder="Escribe una reseña (opcional)" value={localReview} onChange={(e) => setLocalReview(e.target.value)} />
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => { setRateOpen(false); setLocalRating(0); setLocalReview(""); }}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={() => ratingMutation.mutate({ rating: localRating, review: localReview || undefined })} disabled={localRating === 0 || ratingMutation.isPending}>
+                          {ratingMutation.isPending ? 'Enviando...' : 'Enviar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={commentOpen} onOpenChange={(v) => { setCommentOpen(v); if (v && !user) { setCommentOpen(false); toast({ title: 'Debes iniciar sesión', description: 'Inicia sesión para comentar' }); } }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="ghost" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCommentOpen(true); }}>
+                      Comentar
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Comentario en {content.title}</DialogTitle>
+                      <DialogDescription>Comparte tu opinión sobre esta {isMovie ? 'película' : 'serie'}.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-2">
+                      <Textarea placeholder="Escribe tu comentario..." value={localComment} onChange={(e) => setLocalComment(e.target.value)} />
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => { setCommentOpen(false); setLocalComment(""); }}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={() => commentMutation.mutate(localComment)} disabled={!localComment.trim() || commentMutation.isPending}>
+                          {commentMutation.isPending ? 'Publicando...' : 'Publicar'}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
 
