@@ -10,7 +10,7 @@ import { useLocation } from "wouter";
 import type { Rating, Comment, Movie, Series } from "@shared/schema";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [, setLocation] = useLocation();
 
   const { data: userRatings } = useQuery<(Rating & { movie?: Movie; series?: Series })[]>({
@@ -40,7 +40,6 @@ export default function ProfilePage() {
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <Avatar className="w-32 h-32">
-                <AvatarImage src={user.photoURL || undefined} />
                 <AvatarFallback className="text-4xl">
                   {user.displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -52,7 +51,7 @@ export default function ProfilePage() {
                 </h1>
                 <p className="text-muted-foreground mb-4">{user.email}</p>
                 
-                {user.isAdmin && (
+                {isAdmin && (
                   <Badge className="bg-accent text-accent-foreground mb-4">
                     Administrador
                   </Badge>

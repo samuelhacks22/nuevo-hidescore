@@ -56,6 +56,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
   const ratingMutation = useMutation({
     mutationFn: (data: { rating: number; review?: string }) => 
       apiRequest("POST", `/api/ratings`, {
+        userId: user?.id,
         [type === 'movie' ? 'movieId' : 'seriesId']: id,
         ...data,
       }),
@@ -71,6 +72,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
   const commentMutation = useMutation({
     mutationFn: (content: string) =>
       apiRequest("POST", `/api/comments`, {
+        userId: user?.id,
         [type === 'movie' ? 'movieId' : 'seriesId']: id,
         content,
       }),

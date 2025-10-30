@@ -30,6 +30,31 @@ let generativeModel: any = null;
 
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Helper to require admin by checking a provided user id (no real auth)
+  // The client should send the acting user's id in the `x-user-id` header or `userId` query/body field.
+  async function requireAdmin(req: any, res: any) {
+    const userId = (req.header?.('x-user-id') || req.query?.userId || req.body?.userId) as string | undefined;
+    if (!userId) {
+      res.status(401).json({ error: 'Authentication required (provide x-user-id header or userId param)' });
+      return null;
+    }
+    try {
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        res.status(404).json({ error: 'User not found' });
+        return null;
+      }
+      const rank = String(user.rank || '').toLowerCase();
+      if (rank !== 'admin') {
+        res.status(403).json({ error: 'Forbidden: admin required' });
+        return null;
+      }
+      return user;
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Server error' });
+      return null;
+    }
+  }
   
   // Authentication endpoints
   app.post("/api/auth/login", async (req, res) => {
@@ -270,6 +295,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Admin endpoints
   app.get("/api/admin/stats", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const movies = await storage.getAllMovies();
       const series = await storage.getAllSeries();
@@ -296,6 +323,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/admin/movies", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const movies = await storage.getAllMovies();
       res.json(movies);
@@ -305,6 +334,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/movies", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const validated = insertMovieSchema.parse(req.body);
       const movie = await storage.createMovie(validated);
@@ -315,6 +346,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/admin/movies/:id", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       await storage.deleteMovie(req.params.id);
       res.json({ success: true });
@@ -324,6 +357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/admin/series", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const series = await storage.getAllSeries();
       res.json(series);
@@ -333,6 +368,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/admin/series", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const validated = insertSeriesSchema.parse(req.body);
       const series = await storage.createSeries(validated);
@@ -343,6 +380,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.delete("/api/admin/series/:id", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       await storage.deleteSeries(req.params.id);
       res.json({ success: true });
@@ -352,9 +391,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/admin/users", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      const mapped = users.map(u => ({
+        ...u,
+        isAdmin: String(u.rank || '').toLowerCase() === 'admin' || String(u.rank) === '1'
+      }));
+      res.json(mapped);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

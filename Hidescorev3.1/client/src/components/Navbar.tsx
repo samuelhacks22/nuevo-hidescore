@@ -19,7 +19,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,7 +98,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                {user.isAdmin && (
+                {isAdmin && (
                   <Link href="/admin">
                     <Button variant="outline" size="sm" data-testid="button-admin">
                       <Settings className="w-4 h-4 mr-2" />
@@ -192,7 +192,7 @@ export function Navbar() {
               ))}
               {user ? (
                 <>
-                  {user.isAdmin && (
+                  {isAdmin && (
                     <Link
                       href="/admin"
                       className="block px-3 py-2 rounded-md font-medium hover:bg-muted"

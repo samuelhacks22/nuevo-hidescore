@@ -5,7 +5,8 @@ interface AuthContextType {
   user: User | null;
   login: (email: string) => Promise<void>;
   register: (displayName: string, email: string) => Promise<void>;
-  logout: () => void;
+  signOut: () => void;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,12 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const signOut = () => {
     setUser(null);
   };
 
+  const isAdmin = !!user && (String(user.rank).toLowerCase() === "admin" || String(user.rank) === "1");
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, signOut, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

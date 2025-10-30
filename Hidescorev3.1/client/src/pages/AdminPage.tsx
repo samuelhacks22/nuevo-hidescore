@@ -285,9 +285,14 @@ export default function AdminPage() {
                       <TableRow key={u.id}>
                         <TableCell className="font-medium">{u.displayName}</TableCell>
                         <TableCell>
-                          <Badge variant={u.isAdmin ? "default" : "secondary"}>
-                            {u.isAdmin ? "Admin" : "Usuario"}
-                          </Badge>
+                          {(() => {
+                            const isAdmin = String(u.rank || '').toLowerCase() === 'admin' || String(u.rank) === '1';
+                            return (
+                              <Badge variant={isAdmin ? "default" : "secondary"}>
+                                {isAdmin ? "Admin" : "Usuario"}
+                              </Badge>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           {new Date(u.createdAt).toLocaleDateString()}
