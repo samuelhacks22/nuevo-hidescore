@@ -1,104 +1,75 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
 
-export default function RegisterPage() {
+const formSchema = z.object({
+  displayName: z.string().min(2, {
+    message: "Display name must be at least 2 characters.",
+  }),
+  email: z.string().email(),
+});
+
+export function RegisterPage() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const { register } = useAuth();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      displayName: "",
+      email: "",
+    },
+  });
 
-  const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!displayName.trim()) {
-      toast({ title: 'Error', description: 'Por favor ingresa un nombre', variant: 'destructive' });
-      return;
-    }
-    if (!email.trim()) {
-      toast({ title: 'Error', description: 'Por favor ingresa un email', variant: 'destructive' });
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: email.trim(),
-          displayName: displayName.trim() 
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Error al crear el usuario');
-      }
-
-      toast({ title: 'Usuario creado exitosamente' });
-      setLocation('/login');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err?.message || 'Algo salió mal', variant: 'destructive' });
-    } finally {
-      setLoading(false);
+      await register(values.displayName, values.email);
+      setLocation("/");
+    } catch (error) {
+      console.error(error);
     }
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Crear cuenta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <Label>Email</Label>
-              <Input 
-                type="email"
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                placeholder="tucorreo@ejemplo.com" 
-                required
-              />
-            </div>
-            
-            <div>
-              <Label>Nombre</Label>
-              <Input 
-                value={displayName} 
-                onChange={(e) => setDisplayName(e.target.value)} 
-                placeholder="Tu nombre" 
-                required
-                minLength={2}
-                maxLength={50}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Procesando...' : 'Crear cuenta'}
-            </Button>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center">Register</h2>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Display Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Display Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Register</Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground text-center">
-            Esta es una versión simplificada sin autenticación.
-            Solo necesitamos tu email para identificarte.
-          </p>
-          <div className="text-sm text-center">
-            ¿Ya tienes una cuenta?{" "}
-            <Button variant="ghost" className="p-0" onClick={() => setLocation('/login')}>
-              Iniciar sesión
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+        </Form>
+      </div>
     </div>
   );
 }

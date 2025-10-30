@@ -4,12 +4,12 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table - integrated with Firebase Authentication
+// Users table
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull(),
   displayName: text("display_name").notNull(),
-  isAdmin: boolean("is_admin").notNull().default(false),
+  rank: text("rank").notNull().default("user"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

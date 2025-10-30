@@ -1,77 +1,58 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
 
-export default function LoginPage() {
+const formSchema = z.object({
+  email: z.string().email(),
+});
+
+export function LoginPage() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const { login } = useAuth();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      toast({ title: 'Error', description: 'Por favor ingresa un email', variant: 'destructive' });
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await login(email.trim());
-      toast({ title: 'Bienvenido' });
-      setLocation('/');
-    } catch (err: any) {
-      toast({ title: 'Error', description: err?.message || 'Algo salió mal', variant: 'destructive' });
-    } finally {
-      setLoading(false);
+      await login(values.email);
+      setLocation("/");
+    } catch (error) {
+      console.error(error);
     }
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <Label>Email</Label>
-              <Input 
-                type="email"
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                placeholder="tucorreo@ejemplo.com" 
-                required
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Procesando...' : 'Iniciar sesión'}
-            </Button>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center">Login</h2>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Login</Button>
           </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <p className="text-sm text-muted-foreground text-center">
-            Esta es una versión simplificada sin autenticación.
-            Solo necesitas tu email para identificarte.
-          </p>
-          <div className="text-sm text-center">
-            ¿No tienes una cuenta?{" "}
-            <Button variant="ghost" className="p-0 h-auto" onClick={() => setLocation('/register')}>
-              Regístrate
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+        </Form>
+      </div>
     </div>
   );
 }

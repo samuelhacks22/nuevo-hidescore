@@ -1,54 +1,63 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import type { User as AppUser } from "@shared/schema";
+import type { User } from "@shared/schema";
 
 interface AuthContextType {
-  user: AppUser | null;
-  loading: boolean;
+  user: User | null;
   login: (email: string) => Promise<void>;
-  signOut: () => void;
+  register: (displayName: string, email: string) => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_KEY = 'hidescore_user';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-  // Load saved user on startup
   useEffect(() => {
-    const savedUser = localStorage.getItem(USER_KEY);
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
     }
-    setLoading(false);
-  }, []);
+  }, [user]);
 
   const login = async (email: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Error al iniciar sesión');
+    const data = await response.json();
+    if (response.ok) {
+      setUser(data);
+    } else {
+      throw new Error(data.error);
     }
-
-    const userData = await response.json();
-    setUser(userData);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   };
 
-  const signOut = () => {
+  const register = async (displayName: string, email: string) => {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName, email }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUser(data);
+    } else {
+      throw new Error(data.error);
+    }
+  };
+
+  const logout = () => {
     setUser(null);
-    localStorage.removeItem(USER_KEY);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signOut }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -37,15 +37,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email } = req.body;
 
       if (!email || typeof email !== 'string' || !email.includes('@')) {
-        return res.status(400).json({ error: 'Email inválido' });
+        return res.status(400).json({ error: 'Invalid email' });
       }
 
       const user = await storage.getUserByEmail(email.trim());
       if (!user) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+        return res.status(404).json({ error: 'User not found' });
       }
 
-      // In a real app, we would verify password here
       res.json(user);
     } catch (error: any) {
       console.error('Login error:', error);
@@ -55,27 +54,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, displayName } = req.body;
-
-      if (!displayName || typeof displayName !== 'string' || displayName.trim().length < 2) {
-        return res.status(400).json({ error: 'Nombre de usuario inválido' });
-      }
-      if (!email || typeof email !== 'string' || !email.includes('@')) {
-        return res.status(400).json({ error: 'Email inválido' });
-      }
-
-      // Check if user with this email already exists
-      const existingUser = await storage.getUserByEmail(email.trim());
-      if (existingUser) {
-        return res.status(400).json({ error: 'Ya existe un usuario con este email' });
-      }
-
-      const user = await storage.createUser({
-        email: email.trim(),
-        displayName: displayName.trim(),
-        isAdmin: false,
-      });
-
+      const validated = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(validated);
       res.status(201).json(user);
     } catch (error: any) {
       console.error('Error creating user:', error);
@@ -245,43 +225,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Ratings endpoints
-  app.get("/api/ratings/user", async (req, res) => {
-    try {
-      const userId = req.query.userId as string;
-      if (!userId) {
-        return res.json([]);
-      }
-      
-      const ratings = await storage.getRatingsByUser(userId);
-      
-      // Include content details
-      const ratingsWithContent = await Promise.all(
-        ratings.map(async (r) => {
-          if (r.movieId) {
-            const movie = await storage.getMovie(r.movieId);
-            return { ...r, movie };
-          } else if (r.seriesId) {
-            const series = await storage.getSeries(r.seriesId);
-            return { ...r, series };
-          }
-          return r;
-        })
-      );
-      
-      res.json(ratingsWithContent);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
   app.post("/api/ratings", async (req, res) => {
     try {
       const validated = insertRatingSchema.parse(req.body);
-      
-      if (!validated.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
       const rating = await storage.createRating(validated);
       res.json(rating);
     } catch (error: any) {
@@ -290,28 +236,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Comments endpoints
-  app.get("/api/comments/user", async (req, res) => {
-    try {
-      const userId = req.query.userId as string;
-      if (!userId) {
-        return res.json([]);
-      }
-
-      const comments = await storage.getCommentsByUser(userId);
-      res.json(comments);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
   app.post("/api/comments", async (req, res) => {
     try {
       const validated = insertCommentSchema.parse(req.body);
-      
-      if (!validated.userId) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
-
       const comment = await storage.createComment(validated);
       res.json(comment);
     } catch (error: any) {
