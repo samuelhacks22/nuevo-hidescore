@@ -23,10 +23,6 @@ El proyecto es una aplicación full-stack TypeScript con:
 
 ### Variables de Entorno Requeridas
 - `DATABASE_URL`: Cadena de conexión a PostgreSQL (configurada)
-- `VITE_FIREBASE_API_KEY`: Clave API de Firebase (configurada)
-- `VITE_FIREBASE_PROJECT_ID`: ID del proyecto Firebase (configurada)
-- `VITE_FIREBASE_APP_ID`: ID de la aplicación Firebase (configurada)
-
 ### Scripts Disponibles
 ```bash
 npm run dev      # Inicia el servidor de desarrollo
