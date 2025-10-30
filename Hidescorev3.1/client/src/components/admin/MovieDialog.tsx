@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,22 +15,39 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Movie } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
-const movieSchema = z.object({
+// Input schema for the form (all fields are strings coming from inputs)
+const movieInputSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
   posterUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  releaseYear: z.coerce.number().min(1888, "Año inválido").max(new Date().getFullYear() + 5),
-  genre: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  platform: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  director: z.string().optional(),
-  cast: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  runtime: z.coerce.number().optional(),
-  language: z.string().optional(),
-  country: z.string().optional(),
+  releaseYear: z.string().regex(/^\d{4}$/, "Año inválido"),
+  genre: z.string(),
+  platform: z.string(),
+  director: z.string().optional().or(z.literal("")),
+  cast: z.string(),
+  runtime: z.string().optional().or(z.literal("")),
+  language: z.string().optional().or(z.literal("")),
+  country: z.string().optional().or(z.literal("")),
 });
 
-type FormData = z.infer<typeof movieSchema>;
+type FormInput = z.infer<typeof movieInputSchema>;
+
+// Output shape that AdminPage expects (keep similar to previous FormData)
+type FormData = {
+  title: string;
+  description: string;
+  posterUrl: string | null;
+  releaseYear: number;
+  genre: string[];
+  platform: string[];
+  director: string | null;
+  cast: string[];
+  runtime?: number | null;
+  language?: string | null;
+  country?: string | null;
+};
 
 interface MovieDialogProps {
   open: boolean;
@@ -40,27 +57,72 @@ interface MovieDialogProps {
 }
 
 export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialogProps) {
-  const form = useForm<FormData>({
-    resolver: zodResolver(movieSchema),
+  const { toast } = useToast();
+
+  const form = useForm<FormInput>({
+    resolver: zodResolver(movieInputSchema),
     defaultValues: {
       title: movie?.title || "",
       description: movie?.description || "",
       posterUrl: movie?.posterUrl || "",
-      releaseYear: movie?.releaseYear || new Date().getFullYear(),
+      releaseYear: movie?.releaseYear?.toString() || new Date().getFullYear().toString(),
       genre: movie?.genre?.join(", ") || "",
       platform: movie?.platform?.join(", ") || "",
       director: movie?.director || "",
       cast: movie?.cast?.join(", ") || "",
-      runtime: movie?.runtime,
+      runtime: movie?.runtime?.toString() || "",
       language: movie?.language || "",
       country: movie?.country || "",
     },
   });
 
-  const handleSubmit = useCallback(async (data: FormData) => {
-    await onSubmit(data);
-    onOpenChange(false);
-  }, [onSubmit, onOpenChange]);
+  const handleSubmit = useCallback(async (input: FormInput) => {
+    // transform input strings into the shape AdminPage expects
+    const toArray = (s?: string) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
+
+    const payload: FormData = {
+      title: input.title,
+      description: input.description,
+      posterUrl: input.posterUrl || null,
+      releaseYear: parseInt(input.releaseYear, 10) || new Date().getFullYear(),
+      genre: toArray(input.genre),
+      platform: toArray(input.platform),
+      director: input.director ? input.director : null,
+      cast: toArray(input.cast),
+      runtime: input.runtime ? parseInt(input.runtime, 10) : null,
+      language: input.language ? input.language : null,
+      country: input.country ? input.country : null,
+    };
+
+    try {
+      await onSubmit(payload);
+      onOpenChange(false);
+      form.reset();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || String(err) });
+    }
+  }, [onSubmit, onOpenChange, form, toast]);
+
+  // Reset form values when the dialog opens or the movie prop changes
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        title: movie?.title || "",
+        description: movie?.description || "",
+        posterUrl: movie?.posterUrl || "",
+        releaseYear: movie?.releaseYear?.toString() || new Date().getFullYear().toString(),
+        genre: movie?.genre?.join(", ") || "",
+        platform: movie?.platform?.join(", ") || "",
+        director: movie?.director || "",
+        cast: movie?.cast?.join(", ") || "",
+        runtime: movie?.runtime?.toString() || "",
+        language: movie?.language || "",
+        country: movie?.country || "",
+      });
+    } else {
+      form.reset();
+    }
+  }, [open, movie, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

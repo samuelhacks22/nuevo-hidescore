@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,24 +15,42 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Series } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
-const seriesSchema = z.object({
+// Input schema for the form (strings / simple types)
+const seriesInputSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
   posterUrl: z.string().url("URL inválida").optional().or(z.literal("")),
-  releaseYear: z.coerce.number().min(1888, "Año inválido").max(new Date().getFullYear() + 5),
-  endYear: z.coerce.number().min(1888, "Año inválido").max(new Date().getFullYear() + 5).optional(),
-  seasons: z.coerce.number().min(1, "Mínimo 1 temporada").default(1),
-  episodes: z.coerce.number().min(1, "Mínimo 1 episodio").default(1),
-  genre: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  platform: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  creator: z.string().optional(),
-  cast: z.string().transform(str => str.split(",").map(s => s.trim()).filter(Boolean)),
-  language: z.string().optional(),
-  country: z.string().optional(),
+  releaseYear: z.string().regex(/^\d{4}$/, "Año inválido"),
+  endYear: z.string().optional().or(z.literal("")),
+  seasons: z.string().regex(/^\d+$/, "Temporadas inválidas").optional().or(z.literal("1")),
+  episodes: z.string().regex(/^\d+$/, "Episodios inválidos").optional().or(z.literal("1")),
+  genre: z.string(),
+  platform: z.string(),
+  creator: z.string().optional().or(z.literal("")),
+  cast: z.string(),
+  language: z.string().optional().or(z.literal("")),
+  country: z.string().optional().or(z.literal("")),
 });
 
-type FormData = z.infer<typeof seriesSchema>;
+type FormInput = z.infer<typeof seriesInputSchema>;
+
+type FormData = {
+  title: string;
+  description: string;
+  posterUrl: string | null;
+  releaseYear: number;
+  endYear?: number | null;
+  seasons: number;
+  episodes: number;
+  genre: string[];
+  platform: string[];
+  creator?: string | null;
+  cast: string[];
+  language?: string | null;
+  country?: string | null;
+};
 
 interface SeriesDialogProps {
   open: boolean;
@@ -42,16 +60,18 @@ interface SeriesDialogProps {
 }
 
 export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDialogProps) {
-  const form = useForm<FormData>({
-    resolver: zodResolver(seriesSchema),
+  const { toast } = useToast();
+
+  const form = useForm<FormInput>({
+    resolver: zodResolver(seriesInputSchema),
     defaultValues: {
       title: series?.title || "",
       description: series?.description || "",
       posterUrl: series?.posterUrl || "",
-      releaseYear: series?.releaseYear || new Date().getFullYear(),
-      endYear: series?.endYear,
-      seasons: series?.seasons || 1,
-      episodes: series?.episodes || 1,
+      releaseYear: series?.releaseYear?.toString() || new Date().getFullYear().toString(),
+      endYear: series?.endYear?.toString() || "",
+      seasons: series?.seasons?.toString() || "1",
+      episodes: series?.episodes?.toString() || "1",
       genre: series?.genre?.join(", ") || "",
       platform: series?.platform?.join(", ") || "",
       creator: series?.creator || "",
@@ -61,11 +81,55 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
     },
   });
 
-  const handleSubmit = useCallback(async (data: FormData) => {
-    await onSubmit(data);
-    onOpenChange(false);
-    form.reset();
-  }, [onSubmit, onOpenChange, form]);
+  const handleSubmit = useCallback(async (input: FormInput) => {
+    const toArray = (s?: string) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
+
+    const payload: FormData = {
+      title: input.title,
+      description: input.description,
+      posterUrl: input.posterUrl || null,
+      releaseYear: parseInt(input.releaseYear, 10) || new Date().getFullYear(),
+      endYear: input.endYear ? parseInt(input.endYear, 10) : null,
+      seasons: input.seasons ? parseInt(input.seasons, 10) : 1,
+      episodes: input.episodes ? parseInt(input.episodes, 10) : 1,
+      genre: toArray(input.genre),
+      platform: toArray(input.platform),
+      creator: input.creator ? input.creator : null,
+      cast: toArray(input.cast),
+      language: input.language ? input.language : null,
+      country: input.country ? input.country : null,
+    };
+
+    try {
+      await onSubmit(payload);
+      onOpenChange(false);
+      form.reset();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || String(err) });
+    }
+  }, [onSubmit, onOpenChange, form, toast]);
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        title: series?.title || "",
+        description: series?.description || "",
+        posterUrl: series?.posterUrl || "",
+        releaseYear: series?.releaseYear?.toString() || new Date().getFullYear().toString(),
+        endYear: series?.endYear?.toString() || "",
+        seasons: series?.seasons?.toString() || "1",
+        episodes: series?.episodes?.toString() || "1",
+        genre: series?.genre?.join(", ") || "",
+        platform: series?.platform?.join(", ") || "",
+        creator: series?.creator || "",
+        cast: series?.cast?.join(", ") || "",
+        language: series?.language || "",
+        country: series?.country || "",
+      });
+    } else {
+      form.reset();
+    }
+  }, [open, series, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

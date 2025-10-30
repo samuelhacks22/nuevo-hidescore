@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { User } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 const userSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -38,6 +39,8 @@ interface UserDialogProps {
 }
 
 export function UserDialog({ open, onOpenChange, user, onSubmit }: UserDialogProps) {
+  const { toast } = useToast();
+
   const form = useForm<FormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
@@ -48,10 +51,26 @@ export function UserDialog({ open, onOpenChange, user, onSubmit }: UserDialogPro
   });
 
   const handleSubmit = useCallback(async (data: FormData) => {
-    await onSubmit(data);
-    onOpenChange(false);
-    form.reset();
-  }, [onSubmit, onOpenChange, form]);
+    try {
+      await onSubmit(data);
+      onOpenChange(false);
+      form.reset();
+    } catch (err: any) {
+      toast({ title: "Error", description: err?.message || String(err) });
+    }
+  }, [onSubmit, onOpenChange, form, toast]);
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        email: user?.email || "",
+        displayName: user?.displayName || "",
+        rank: (user?.rank as "user" | "admin") || "user",
+      });
+    } else {
+      form.reset();
+    }
+  }, [open, user, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
