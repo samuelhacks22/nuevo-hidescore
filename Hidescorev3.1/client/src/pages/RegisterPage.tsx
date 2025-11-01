@@ -9,9 +9,10 @@ import { useLocation } from "wouter";
 
 const formSchema = z.object({
   displayName: z.string().min(2, {
-    message: "Display name must be at least 2 characters.",
+    message: "El nombre debe tener al menos 2 caracteres.",
   }),
-  email: z.string().email(),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
 export function RegisterPage() {
@@ -22,14 +23,16 @@ export function RegisterPage() {
     defaultValues: {
       displayName: "",
       email: "",
+      password: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await register(values.displayName, values.email);
+      await register(values.displayName, values.email, values.password);
       setLocation("/");
-    } catch (error) {
+    } catch (error: any) {
+      form.setError("root", { message: error.message });
       console.error(error);
     }
   };
@@ -66,8 +69,28 @@ export function RegisterPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white transition-all duration-200 transform hover:scale-[1.02]">
-              Register
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-200">Contraseña</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Mínimo 6 caracteres" className="bg-black/50 border-purple-500/50 text-white placeholder:text-gray-400" {...field} />
+                  </FormControl>
+                  <FormMessage className="text-red-400" />
+                </FormItem>
+              )}
+            />
+            {form.formState.errors.root && (
+              <div className="text-red-400 text-center">{form.formState.errors.root.message}</div>
+            )}
+            <Button 
+              type="submit" 
+              disabled={form.formState.isSubmitting}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {form.formState.isSubmitting ? "Registrando..." : "Register"}
             </Button>
           </form>
         </Form>

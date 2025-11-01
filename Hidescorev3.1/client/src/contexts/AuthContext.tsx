@@ -3,8 +3,8 @@ import type { User } from "@shared/schema";
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string) => Promise<void>;
-  register: (displayName: string, email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (displayName: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
   isAdmin: boolean;
 }
@@ -25,29 +25,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const login = async (email: string) => {
+  const login = async (email: string, password: string) => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
     if (response.ok) {
-      setUser(data);
+      const { passwordHash, ...safeUser } = data;
+      setUser(safeUser);
     } else {
       throw new Error(data.error);
     }
   };
 
-  const register = async (displayName: string, email: string) => {
+  const register = async (displayName: string, email: string, password: string) => {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, email }),
+      body: JSON.stringify({ displayName, email, password }),
     });
     const data = await response.json();
     if (response.ok) {
-      setUser(data);
+      const { passwordHash, ...safeUser } = data;
+      setUser(safeUser);
     } else {
       throw new Error(data.error);
     }

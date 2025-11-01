@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull(),
   displayName: text("display_name").notNull(),
+  passwordHash: text("password_hash").notNull(),
   rank: text("rank").notNull().default("user"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -133,9 +134,20 @@ export const commentsRelations = relations(comments, ({ one }) => ({
 }));
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
+export const insertUserSchema = createInsertSchema(users)
+  .omit({
+    id: true,
+    createdAt: true,
+    passwordHash: true,
+  })
+  .extend({
+    password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  });
+
+// For login
+export const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(1, "La contraseña es requerida"),
 });
 
 export const insertMovieSchema = createInsertSchema(movies).omit({

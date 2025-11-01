@@ -11,7 +11,7 @@ import { eq, and, or, desc, asc, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: Omit<InsertUser, 'password'> & { passwordHash: string }): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
@@ -69,7 +69,7 @@ export interface SeriesFilters {
 
 export class DatabaseStorage implements IStorage {
   // Users
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: Omit<InsertUser, 'password'> & { passwordHash: string }): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }

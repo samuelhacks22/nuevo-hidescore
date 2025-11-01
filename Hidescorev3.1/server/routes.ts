@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertRatingSchema, insertCommentSchema } from "@shared/schema";
+import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
+import bcrypt from "bcryptjs";
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
 (async () => {
@@ -59,18 +60,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication endpoints
   app.post("/api/auth/login", async (req, res) => {
     try {
-      const { email } = req.body;
-
-      if (!email || typeof email !== 'string' || !email.includes('@')) {
-        return res.status(400).json({ error: 'Invalid email' });
-      }
-
-      const user = await storage.getUserByEmail(email.trim());
+      const validated = loginSchema.parse(req.body);
+      
+      const user = await storage.getUserByEmail(validated.email.trim());
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'Usuario no encontrado' });
       }
 
-      res.json(user);
+      const isValid = await bcrypt.compare(validated.password, user.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Contraseña incorrecta' });
+      }
+
+      const { passwordHash, ...safeUser } = user;
+      res.json(safeUser);
     } catch (error: any) {
       console.error('Login error:', error);
       res.status(500).json({ error: error.message });
@@ -80,8 +83,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const validated = insertUserSchema.parse(req.body);
-      const user = await storage.createUser(validated);
-      res.status(201).json(user);
+      
+      // Check if email is already taken
+      const existing = await storage.getUserByEmail(validated.email);
+      if (existing) {
+        return res.status(400).json({ error: 'El email ya está registrado' });
+      }
+
+      // Hash password and create user
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(validated.password, salt);
+      const userData = {
+        email: validated.email,
+        displayName: validated.displayName,
+        passwordHash,
+        rank: validated.rank,
+      };
+
+      const user = await storage.createUser(userData);
+      const { passwordHash: _, ...safeUser } = user;
+      res.status(201).json(safeUser);
     } catch (error: any) {
       console.error('Error creating user:', error);
       res.status(500).json({ error: error.message });
