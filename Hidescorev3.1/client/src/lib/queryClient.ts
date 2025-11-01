@@ -49,7 +49,35 @@ export const getQueryFn: <T>(options: {
       }
     } catch (e) {}
 
-    const res = await fetch(queryKey.join("/") as string, {
+    // Build URL: support queryKey being [baseUrl, paramsObject]
+    const buildUrl = (qk: unknown[]) => {
+      if (!qk || qk.length === 0) return "";
+      const base = String(qk[0] ?? "");
+      // if there's a single params object as second item, convert to query string
+      if (qk.length >= 2 && typeof qk[1] === "object" && qk[1] !== null && !Array.isArray(qk[1])) {
+        const paramsObj = qk[1] as Record<string, any>;
+        const search = new URLSearchParams();
+        Object.entries(paramsObj).forEach(([k, v]) => {
+          if (v === undefined || v === null) return;
+          if (Array.isArray(v)) {
+            v.forEach((item) => search.append(k, String(item)));
+          } else if (typeof v === "object") {
+            // fallback: JSON stringify complex values
+            search.append(k, JSON.stringify(v));
+          } else {
+            search.append(k, String(v));
+          }
+        });
+        const qs = search.toString();
+        return qs ? `${base}?${qs}` : base;
+      }
+      // fallback: join everything as path segments
+      return qk.map((p) => String(p)).join("/");
+    };
+
+    const url = buildUrl(queryKey as unknown[]);
+
+    const res = await fetch(url, {
       credentials: "include",
       headers,
     });

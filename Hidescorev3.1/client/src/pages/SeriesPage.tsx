@@ -85,7 +85,7 @@ export default function SeriesPage() {
                 <SelectContent>
                   <SelectItem value="all">Todos los Géneros</SelectItem>
                   {GENRES.map((genre) => (
-                    <SelectItem key={genre} value={genre.toLowerCase()}>
+                    <SelectItem key={genre} value={genre}>
                       {genre}
                     </SelectItem>
                   ))}
@@ -102,7 +102,7 @@ export default function SeriesPage() {
                 <SelectContent>
                   <SelectItem value="all">Todas las Plataformas</SelectItem>
                   {PLATFORMS.map((platform) => (
-                    <SelectItem key={platform} value={platform.toLowerCase()}>
+                    <SelectItem key={platform} value={platform}>
                       {platform}
                     </SelectItem>
                   ))}

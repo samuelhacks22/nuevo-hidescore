@@ -284,8 +284,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...series.slice(0, 4).map(s => ({ ...s, type: 'series' as const })),
       ];
 
-      // If Gemini is available and we have user context, we could generate better recommendations
-      // TODO: Implement AI-powered recommendations when GEMINI_API_KEY is set
       
       res.json(combined);
     } catch (error: any) {
