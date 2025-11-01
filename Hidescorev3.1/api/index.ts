@@ -15,6 +15,21 @@ async function getHandler(): Promise<any> {
 }
 
 export default async function handler(req: any, res: any) {
+  // prefer the bundled server/app if available (produced by `npm run build`)
+  try {
+    // runtime require of the built JS; use conditional import so local dev still works
+    // Path is relative to project root when running on Vercel after build
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const built = await import('../dist/server/app.js');
+    if (built && built.createApp) {
+      const { createApp } = built as any;
+      const { app } = await createApp();
+      return app(req, res);
+    }
+  } catch (e) {
+    // fallback to runtime app (useful for local dev without build)
+  }
+
   const h = await getHandler();
   return h(req, res);
 }
