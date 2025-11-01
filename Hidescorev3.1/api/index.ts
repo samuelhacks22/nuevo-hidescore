@@ -21,7 +21,7 @@ export default async function handler(req: any, res: any) {
     // Path is relative to project root when running on Vercel after build
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const built = await import('../dist/server/app.js');
-    if (built && built.createApp) {
+    if (built && typeof (built.createApp) === 'function') {
       const { createApp } = built as any;
       const { app } = await createApp();
       return app(req, res);
