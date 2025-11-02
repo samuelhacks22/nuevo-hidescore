@@ -117,7 +117,6 @@ Para editar/borrar: el cliente llama PUT/DELETE a `/api/comments/:id` o `/api/ra
 
 - Variables de entorno importantes:
   - DATABASE_URL — conexión Postgres (Neon)
-  - GEMINI_API_KEY — opcional para recomendaciones AI (si está configurado)
 
 - Comandos útiles:
 ```powershell
