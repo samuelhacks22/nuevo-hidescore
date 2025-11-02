@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Film, Tv, Star } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ interface ContentCardProps {
 }
 
 export function ContentCard({ content, userRating, className }: ContentCardProps) {
+  const [, setLocation] = useLocation();
   const isMovie = content.type === 'movie';
   const detailPath = `/${content.type}/${content.id}`;
   const { user } = useAuth();
@@ -83,6 +84,8 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
               src={content.posterUrl}
               alt={content.title}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -112,17 +115,55 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
               
               {/* Platforms */}
               {content.platform.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {content.platform.slice(0, 2).map((platform) => (
-                    <Badge 
-                      key={platform} 
-                      variant="secondary" 
-                      className="text-xs"
-                      data-testid={`platform-${platform}`}
-                    >
-                      {platform}
-                    </Badge>
-                  ))}
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap gap-1">
+                    {content.platform.slice(0, 2).map((platform) => (
+                      <Badge 
+                        key={platform} 
+                        variant="secondary" 
+                        className="text-xs"
+                        data-testid={`platform-${platform}`}
+                      >
+                        {platform}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Show quick 'Ver en' buttons that open the platform link in a new tab (both movies and series).
+                      If a stored link exists for the platform (matched by index), open it in a new tab; otherwise
+                      navigate internally to the filtered listing. */}
+                  <div className="flex items-center gap-2">
+                    {content.platform.slice(0, 3).map((platform, idx) => {
+                      const link = (content as any).platformLinks?.[idx] as string | undefined;
+                      return (
+                        <Button
+                          key={platform}
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (link) {
+                              // Open the stored platform link in a new tab
+                              try {
+                                window.open(link, '_blank', 'noopener');
+                              } catch (err) {
+                                (location as any) = link;
+                              }
+                            } else {
+                              // Navigate internally to movies/series listing filtered by platform
+                              const base = isMovie ? '/movies' : '/series';
+                              const target = `${base}?platform=${encodeURIComponent(platform)}`;
+                              setLocation(target);
+                            }
+                          }}
+                          aria-label={`Ver ${content.title} en ${platform}`}
+                        >
+                          Ver en {platform}
+                        </Button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

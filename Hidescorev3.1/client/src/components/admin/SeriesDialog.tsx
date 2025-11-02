@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,36 @@ import { Textarea } from "@/components/ui/textarea";
 import { Series } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
+// Normalize a user-entered URL by adding https:// when missing and validating
+function normalizeUrl(raw?: string) {
+  const s = (raw ?? "").trim();
+  if (!s) return "";
+  try {
+    new URL(s);
+    return s;
+  } catch {
+    if (!s.includes("://")) {
+      try {
+        const candidate = `https://${s}`;
+        new URL(candidate);
+        return candidate;
+      } catch {
+        return s;
+      }
+    }
+    return s;
+  }
+}
+
+function isValidHttpUrl(s: string) {
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // Input schema for the form (strings / simple types)
 const seriesInputSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -27,7 +57,8 @@ const seriesInputSchema = z.object({
   seasons: z.string().regex(/^\d+$/, "Temporadas inválidas").optional().or(z.literal("1")),
   episodes: z.string().regex(/^\d+$/, "Episodios inválidos").optional().or(z.literal("1")),
   genre: z.string(),
-  platform: z.string(),
+  // platformPairs: explicit list of { name, link }
+  platformPairs: z.array(z.object({ name: z.string().min(1), link: z.string().optional().or(z.literal("") ) })),
   creator: z.string().optional().or(z.literal("")),
   cast: z.string(),
   language: z.string().optional().or(z.literal("")),
@@ -46,6 +77,7 @@ type FormData = {
   episodes: number;
   genre: string[];
   platform: string[];
+  platformLinks?: string[];
   creator?: string | null;
   cast: string[];
   language?: string | null;
@@ -73,7 +105,7 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
       seasons: series?.seasons?.toString() || "1",
       episodes: series?.episodes?.toString() || "1",
       genre: series?.genre?.join(", ") || "",
-      platform: series?.platform?.join(", ") || "",
+      platformPairs: (series?.platform || []).map((name, i) => ({ name, link: series?.platformLinks?.[i] ?? "" })) || [],
       creator: series?.creator || "",
       cast: series?.cast?.join(", ") || "",
       language: series?.language || "",
@@ -81,8 +113,32 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
     },
   });
 
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "platformPairs" });
+
   const handleSubmit = useCallback(async (input: FormInput) => {
     const toArray = (s?: string) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
+
+    const platformNames = input.platformPairs.map(p => p.name).filter(Boolean);
+    const normalizedLinks = input.platformPairs.map((p) => normalizeUrl(p.link));
+
+    const hasInvalid = input.platformPairs.some((p, idx) => {
+      const raw = (p.link ?? "").trim();
+      if (!raw) return false;
+      return !isValidHttpUrl(normalizedLinks[idx]);
+    });
+
+    if (hasInvalid) {
+      input.platformPairs.forEach((p, idx) => {
+        const raw = (p.link ?? "").trim();
+        if (raw && !isValidHttpUrl(normalizedLinks[idx])) {
+          form.setError(`platformPairs.${idx}.link` as any, { type: "manual", message: "URL inválida" } as any);
+        }
+      });
+      toast({ title: "Hay enlaces inválidos", description: "Corrige los enlaces de plataforma antes de enviar." });
+      return;
+    }
+
+    const platformLinks = normalizedLinks.some(l => l.length > 0) ? normalizedLinks : undefined;
 
     const payload: FormData = {
       title: input.title,
@@ -93,7 +149,8 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
       seasons: input.seasons ? parseInt(input.seasons, 10) : 1,
       episodes: input.episodes ? parseInt(input.episodes, 10) : 1,
       genre: toArray(input.genre),
-      platform: toArray(input.platform),
+      platform: platformNames,
+      platformLinks,
       creator: input.creator ? input.creator : null,
       cast: toArray(input.cast),
       language: input.language ? input.language : null,
@@ -120,7 +177,7 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
         seasons: series?.seasons?.toString() || "1",
         episodes: series?.episodes?.toString() || "1",
         genre: series?.genre?.join(", ") || "",
-        platform: series?.platform?.join(", ") || "",
+        platformPairs: (series?.platform || []).map((name, i) => ({ name, link: series?.platformLinks?.[i] ?? "" })) || [],
         creator: series?.creator || "",
         cast: series?.cast?.join(", ") || "",
         language: series?.language || "",
@@ -278,19 +335,30 @@ export function SeriesDialog({ open, onOpenChange, series, onSubmit }: SeriesDia
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="platform"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plataformas *</FormLabel>
+              <div>
+                <FormItem>
+                  <FormLabel>Plataformas y Links</FormLabel>
+                  <FormMessage />
+                </FormItem>
+
+                {fields.map((f, idx) => (
+                  <div key={f.id} className="flex gap-2 items-center mb-2">
                     <FormControl>
-                      <Input {...field} placeholder="Netflix, Prime Video" />
+                      <Input {...form.register(`platformPairs.${idx}.name` as const)} placeholder="Nombre de la plataforma (ej. Netflix)" />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormControl>
+                      <Input {...form.register(`platformPairs.${idx}.link` as const)} placeholder="https://... (opcional)" />
+                    </FormControl>
+                    <Button type="button" variant="ghost" onClick={() => remove(idx)}>
+                      Eliminar
+                    </Button>
+                  </div>
+                ))}
+
+                <Button type="button" onClick={() => append({ name: "", link: "" })}>
+                  Añadir plataforma
+                </Button>
+              </div>
             </div>
 
             <FormField

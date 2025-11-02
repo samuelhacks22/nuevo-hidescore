@@ -76,6 +76,7 @@ export default function AdminPage() {
     releaseYear: number;
     genre: string[];
     platform: string[];
+    platformLinks?: string[];
     cast: string[];
     posterUrl: string | null;
     director: string | null;
@@ -90,6 +91,7 @@ export default function AdminPage() {
     title: string;
     description: string;
     releaseYear: number;
+    platformLinks?: string[];
     genre: string[];
     platform: string[];
     cast: string[];
@@ -269,6 +271,10 @@ export default function AdminPage() {
                 <Plus className="w-4 h-4 mr-2" />
                 Añadir Película
               </Button>
+            </div>
+
+            <div className="mt-4">
+              {/* Bulk edit removed - manage platform links from the per-item edit dialog */}
             </div>
 
             <Card>
@@ -501,6 +507,8 @@ export default function AdminPage() {
           const movieData = {
             ...data,
             posterUrl: data.posterUrl || null,
+            // Ensure platformLinks is always sent as an array (may be empty) so backend receives alignment
+            platformLinks: (data as any).platformLinks ?? [],
             director: data.director || null,
             runtime: data.runtime || null,
             language: data.language || null,
@@ -524,6 +532,8 @@ export default function AdminPage() {
           const seriesData = {
             ...data,
             posterUrl: data.posterUrl || null,
+            // Send platformLinks even if empty array so the server can store alignment
+            platformLinks: (data as any).platformLinks ?? [],
             language: data.language || null,
             country: data.country || null,
             endYear: data.endYear || null,
@@ -537,6 +547,8 @@ export default function AdminPage() {
         }}
         series={seriesToEdit}
       />
+
+  {/* BulkLinksDialog removed - per-item MovieDialog / SeriesDialog persist platform links */}
 
       <UserDialog 
         open={userDialogOpen} 

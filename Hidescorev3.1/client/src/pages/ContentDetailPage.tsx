@@ -29,6 +29,11 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
   const [userRating, setUserRating] = useState<number>(0);
   const [review, setReview] = useState<string>("");
   const [comment, setComment] = useState<string>("");
+  const [ratingEditMode, setRatingEditMode] = useState(false);
+  const [ratingDraft, setRatingDraft] = useState<number>(0);
+  const [reviewDraft, setReviewDraft] = useState<string>("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState<string>("");
 
   const endpoint = type === 'movie' ? '/api/movies' : '/api/series';
   
@@ -80,6 +85,44 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
       queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/comments`] });
       toast({ title: "¡Comentario publicado exitosamente!" });
       setComment("");
+    },
+  });
+
+  const updateRatingMutation = useMutation({
+    mutationFn: (data: { id: string; rating?: number; review?: string | null }) =>
+      apiRequest("PUT", `/api/ratings/${data.id}`, { rating: data.rating, review: data.review }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [endpoint, id] });
+      queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/ratings`] });
+      toast({ title: "¡Calificación actualizada!" });
+      setRatingEditMode(false);
+    },
+  });
+
+  const deleteRatingMutation = useMutation({
+    mutationFn: (idToDelete: string) => apiRequest("DELETE", `/api/ratings/${idToDelete}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [endpoint, id] });
+      queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/ratings`] });
+      toast({ title: "¡Calificación eliminada!" });
+    },
+  });
+
+  const updateCommentMutation = useMutation({
+    mutationFn: (data: { id: string; content: string }) => apiRequest("PUT", `/api/comments/${data.id}`, { content: data.content }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/comments`] });
+      toast({ title: "Comentario actualizado" });
+      setEditingCommentId(null);
+      setEditingCommentText("");
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (idToDelete: string) => apiRequest("DELETE", `/api/comments/${idToDelete}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`${endpoint}/${id}/comments`] });
+      toast({ title: "Comentario eliminado" });
     },
   });
 
@@ -196,18 +239,51 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                 {content.description}
               </p>
 
-              {/* Platforms */}
+              {/* Platforms and quick links */}
               {content.platform.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-heading font-semibold text-sm text-muted-foreground mb-2">
                     Disponible en
                   </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {content.platform.map((p) => (
-                      <Badge key={p} variant="secondary">
-                        {p}
-                      </Badge>
-                    ))}
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 mr-4">
+                      {content.platform.map((p) => (
+                        <Badge key={p} variant="secondary">
+                          {p}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Quick link buttons: if a stored link exists for the platform (by index), open it; otherwise
+                        navigate to the filtered listing page. */}
+                    <div className="flex flex-wrap gap-2">
+                      {content.platform.map((platform, idx) => {
+                        const link = (content as any).platformLinks?.[idx] as string | undefined;
+                        return (
+                          <Button
+                            key={`${platform}-btn-${idx}`}
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (link) {
+                                try {
+                                  window.open(link, '_blank', 'noopener');
+                                } catch (err) {
+                                  (location as any) = link;
+                                }
+                              } else {
+                                const base = isMovie ? '/movies' : '/series';
+                                const target = `${base}?platform=${encodeURIComponent(platform)}`;
+                                // navigate using client router
+                                (window as any).location = target;
+                              }
+                            }}
+                          >
+                            Ver en {platform}
+                          </Button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               )}
@@ -277,9 +353,32 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
             <CardContent className="space-y-4">
               {userRatingData ? (
                 <div className="space-y-2">
-                  <StarRating rating={userRatingData.rating} size="lg" />
-                  {userRatingData.review && (
-                    <p className="text-muted-foreground mt-2">{userRatingData.review}</p>
+                  {!ratingEditMode ? (
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <StarRating rating={userRatingData.rating} size="lg" />
+                        {userRatingData.review && (
+                          <p className="text-muted-foreground mt-2">{userRatingData.review}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => { setRatingEditMode(true); setRatingDraft(userRatingData.rating); setReviewDraft(userRatingData.review || ""); }}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => { if (confirm('¿Eliminar tu calificación?')) deleteRatingMutation.mutate(userRatingData.id); }}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <StarRating rating={ratingDraft} interactive onRatingChange={setRatingDraft} size="lg" />
+                      <Textarea placeholder="Edita tu reseña (opcional)" value={reviewDraft} onChange={(e) => setReviewDraft(e.target.value)} className="min-h-24" />
+                      <div className="flex gap-2">
+                        <Button onClick={() => updateRatingMutation.mutate({ id: userRatingData.id, rating: ratingDraft, review: reviewDraft || null })} disabled={updateRatingMutation.isPending}>Guardar</Button>
+                        <Button variant="outline" onClick={() => setRatingEditMode(false)}>Cancelar</Button>
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -357,8 +456,31 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                         <span className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
                         </span>
+                        <div className="ml-auto flex items-center gap-2">
+                          {user?.id === c.userId && (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={() => { setEditingCommentId(c.id); setEditingCommentText(c.content); }}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => { if (confirm('¿Eliminar tu comentario?')) deleteCommentMutation.mutate(c.id); }}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-foreground/90">{c.content}</p>
+
+                      {editingCommentId === c.id ? (
+                        <div className="space-y-2">
+                          <Textarea value={editingCommentText} onChange={(e) => setEditingCommentText(e.target.value)} className="min-h-24" />
+                          <div className="flex gap-2">
+                            <Button onClick={() => updateCommentMutation.mutate({ id: c.id, content: editingCommentText })} disabled={updateCommentMutation.isPending || !editingCommentText.trim()}>Guardar</Button>
+                            <Button variant="outline" onClick={() => { setEditingCommentId(null); setEditingCommentText(""); }}>Cancelar</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-foreground/90">{c.content}</p>
+                      )}
                     </div>
                   </div>
                 ))

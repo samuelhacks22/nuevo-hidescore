@@ -33,9 +33,24 @@ export function Navbar() {
     e.preventDefault();
     if (searchQuery.trim()) {
       setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery("");
     }
   };
+
+  // keep search input in sync with the query param when on /search
+  useEffect(() => {
+    try {
+      const parts = location.split('?');
+      if (parts[0] === '/search') {
+        const params = new URLSearchParams(parts[1] || '');
+        const q = params.get('q') || '';
+        setSearchQuery(decodeURIComponent(q));
+        return;
+      }
+    } catch (err) {
+      // ignore
+    }
+    // when leaving search page, keep the input but don't override user's typing
+  }, [location]);
 
   const navLinks = [
     { href: "/", label: "Inicio" },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,38 @@ import { Textarea } from "@/components/ui/textarea";
 import { Movie } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
+// Normalize a user-entered URL by adding https:// when missing and validating
+function normalizeUrl(raw?: string) {
+  const s = (raw ?? "").trim();
+  if (!s) return "";
+  try {
+    // if it's already a valid URL, return as-is
+    new URL(s);
+    return s;
+  } catch {
+    // try adding https:// and validate
+    if (!s.includes("://")) {
+      try {
+        const candidate = `https://${s}`;
+        new URL(candidate);
+        return candidate;
+      } catch {
+        return s;
+      }
+    }
+    return s;
+  }
+}
+
+function isValidHttpUrl(s: string) {
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // Input schema for the form (all fields are strings coming from inputs)
 const movieInputSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -24,7 +56,8 @@ const movieInputSchema = z.object({
   posterUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   releaseYear: z.string().regex(/^\d{4}$/, "Año inválido"),
   genre: z.string(),
-  platform: z.string(),
+  // platformPairs is an explicit list of { name, link } entries
+  platformPairs: z.array(z.object({ name: z.string().min(1), link: z.string().optional().or(z.literal("")) })),
   director: z.string().optional().or(z.literal("")),
   cast: z.string(),
   runtime: z.string().optional().or(z.literal("")),
@@ -42,6 +75,7 @@ type FormData = {
   releaseYear: number;
   genre: string[];
   platform: string[];
+  platformLinks?: string[];
   director: string | null;
   cast: string[];
   runtime?: number | null;
@@ -67,7 +101,8 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
       posterUrl: movie?.posterUrl || "",
       releaseYear: movie?.releaseYear?.toString() || new Date().getFullYear().toString(),
       genre: movie?.genre?.join(", ") || "",
-      platform: movie?.platform?.join(", ") || "",
+      // build platformPairs from movie.platform and movie.platformLinks if available
+      platformPairs: (movie?.platform || []).map((name, i) => ({ name, link: movie?.platformLinks?.[i] ?? "" })) || [],
       director: movie?.director || "",
       cast: movie?.cast?.join(", ") || "",
       runtime: movie?.runtime?.toString() || "",
@@ -76,9 +111,35 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
     },
   });
 
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "platformPairs" });
+
   const handleSubmit = useCallback(async (input: FormInput) => {
-    // transform input strings into the shape AdminPage expects
     const toArray = (s?: string) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
+
+    // Normalize and validate platform links collected from platformPairs
+    const platformNames = input.platformPairs.map(p => p.name).filter(Boolean);
+    const normalizedLinks = input.platformPairs.map((p) => normalizeUrl(p.link));
+
+    // If any non-empty raw link is invalid after normalization, set a form error and abort
+    const hasInvalid = input.platformPairs.some((p, idx) => {
+      const raw = (p.link ?? "").trim();
+      if (!raw) return false;
+      return !isValidHttpUrl(normalizedLinks[idx]);
+    });
+
+    if (hasInvalid) {
+      // mark individual link fields as errors so the UI shows messages
+      input.platformPairs.forEach((p, idx) => {
+        const raw = (p.link ?? "").trim();
+        if (raw && !isValidHttpUrl(normalizedLinks[idx])) {
+          form.setError(`platformPairs.${idx}.link` as any, { type: "manual", message: "URL inválida" } as any);
+        }
+      });
+      toast({ title: "Hay enlaces inválidos", description: "Corrige los enlaces de plataforma antes de enviar." });
+      return;
+    }
+
+    const platformLinks = normalizedLinks.some(l => l.length > 0) ? normalizedLinks : undefined;
 
     const payload: FormData = {
       title: input.title,
@@ -86,7 +147,8 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
       posterUrl: input.posterUrl || null,
       releaseYear: parseInt(input.releaseYear, 10) || new Date().getFullYear(),
       genre: toArray(input.genre),
-      platform: toArray(input.platform),
+      platform: platformNames,
+      platformLinks,
       director: input.director ? input.director : null,
       cast: toArray(input.cast),
       runtime: input.runtime ? parseInt(input.runtime, 10) : null,
@@ -112,7 +174,7 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
         posterUrl: movie?.posterUrl || "",
         releaseYear: movie?.releaseYear?.toString() || new Date().getFullYear().toString(),
         genre: movie?.genre?.join(", ") || "",
-        platform: movie?.platform?.join(", ") || "",
+        platformPairs: (movie?.platform || []).map((name, i) => ({ name, link: movie?.platformLinks?.[i] ?? "" })) || [],
         director: movie?.director || "",
         cast: movie?.cast?.join(", ") || "",
         runtime: movie?.runtime?.toString() || "",
@@ -211,19 +273,30 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="platform"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plataformas *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Netflix, Prime Video" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div>
+              <FormItem>
+                <FormLabel>Plataformas y Links</FormLabel>
+                <FormMessage />
+              </FormItem>
+
+              {fields.map((f, idx) => (
+                <div key={f.id} className="flex gap-2 items-center mb-2">
+                  <FormControl>
+                    <Input {...form.register(`platformPairs.${idx}.name` as const)} placeholder="Nombre de la plataforma (ej. Netflix)" />
+                  </FormControl>
+                  <FormControl>
+                    <Input {...form.register(`platformPairs.${idx}.link` as const)} placeholder="https://... (opcional)" />
+                  </FormControl>
+                  <Button type="button" variant="ghost" onClick={() => remove(idx)}>
+                    Eliminar
+                  </Button>
+                </div>
+              ))}
+
+              <Button type="button" onClick={() => append({ name: "", link: "" })}>
+                Añadir plataforma
+              </Button>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

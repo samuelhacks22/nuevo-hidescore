@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
+import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
@@ -281,6 +281,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a rating (only owner)
+  app.put("/api/ratings/:id", async (req, res) => {
+    try {
+      const userId = (req.header?.('x-user-id') || req.body?.userId || req.query?.userId) as string | undefined;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const existing = await storage.getRating(req.params.id);
+      if (!existing) return res.status(404).json({ error: 'Rating not found' });
+      if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+      // accept partial update for rating and review
+      const payload: any = {};
+      if (req.body.rating !== undefined) payload.rating = Number(req.body.rating);
+      if (req.body.review !== undefined) payload.review = String(req.body.review);
+
+      const updated = await storage.updateRating(req.params.id, payload);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Delete a rating (only owner)
+  app.delete("/api/ratings/:id", async (req, res) => {
+    try {
+      const userId = (req.header?.('x-user-id') || req.body?.userId || req.query?.userId) as string | undefined;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const existing = await storage.getRating(req.params.id);
+      if (!existing) return res.status(404).json({ error: 'Rating not found' });
+      if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+      await storage.deleteRating(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Comments endpoints
   app.post("/api/comments", async (req, res) => {
     try {
@@ -289,6 +326,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(comment);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Update a comment (only owner)
+  app.put("/api/comments/:id", async (req, res) => {
+    try {
+      const userId = (req.header?.('x-user-id') || req.body?.userId || req.query?.userId) as string | undefined;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const existing = await storage.getComment(req.params.id);
+      if (!existing) return res.status(404).json({ error: 'Comment not found' });
+      if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+      const content = req.body.content;
+      if (typeof content !== 'string' || !content.trim()) {
+        return res.status(400).json({ error: 'Content is required' });
+      }
+
+      const updated = await storage.updateComment(req.params.id, { content });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Delete a comment (only owner)
+  app.delete("/api/comments/:id", async (req, res) => {
+    try {
+      const userId = (req.header?.('x-user-id') || req.body?.userId || req.query?.userId) as string | undefined;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+      const existing = await storage.getComment(req.params.id);
+      if (!existing) return res.status(404).json({ error: 'Comment not found' });
+      if (existing.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+      await storage.deleteComment(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -352,11 +426,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // (bulk endpoints removed) individual dialogs now send platformLinks when creating/updating
+
   app.post("/api/admin/movies", async (req, res) => {
     const adminUser = await requireAdmin(req, res);
     if (!adminUser) return;
     try {
-      const validated = insertMovieSchema.parse(req.body);
+      const validated = insertMovieSchemaWithLinks.parse(req.body);
       const movie = await storage.createMovie(validated);
       res.json(movie);
     } catch (error: any) {
@@ -390,13 +466,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const adminUser = await requireAdmin(req, res);
     if (!adminUser) return;
     try {
-      const validated = insertSeriesSchema.parse(req.body);
+      const validated = insertSeriesSchemaWithLinks.parse(req.body);
       const series = await storage.createSeries(validated);
       res.json(series);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
   });
+
+  // Bulk update platform_links for movies/series
+  // bulk endpoint removed
 
   app.delete("/api/admin/series/:id", async (req, res) => {
     const adminUser = await requireAdmin(req, res);

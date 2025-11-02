@@ -5,21 +5,24 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
-import HomePage from "@/pages/HomePage";
-import MoviesPage from "@/pages/MoviesPage";
-import SeriesPage from "@/pages/SeriesPage";
-import ContentDetailPage from "@/pages/ContentDetailPage";
-import DiscoverPage from "@/pages/DiscoverPage";
-import AdminPage from "@/pages/AdminPage";
-import ProfilePage from "@/pages/ProfilePage";
-import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
-import NotFound from "@/pages/not-found";
+import React, { Suspense, lazy } from "react";
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const MoviesPage = lazy(() => import("@/pages/MoviesPage"));
+const SeriesPage = lazy(() => import("@/pages/SeriesPage"));
+const ContentDetailPage = lazy(() => import("@/pages/ContentDetailPage"));
+const DiscoverPage = lazy(() => import("@/pages/DiscoverPage"));
+const SearchPage = lazy(() => import("@/pages/SearchPage"));
+const AdminPage = lazy(() => import("@/pages/AdminPage"));
+const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage").then(mod => ({ default: (mod as any).LoginPage })));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(mod => ({ default: (mod as any).RegisterPage })));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
   return (
     <>
       <Navbar />
+      <Suspense fallback={<div className="p-8">Cargando...</div>}>
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/movies" component={MoviesPage} />
@@ -31,12 +34,14 @@ function Router() {
           {() => <ContentDetailPage type="series" />}
         </Route>
         <Route path="/discover" component={DiscoverPage} />
+        <Route path="/search" component={SearchPage} />
         <Route path="/admin" component={AdminPage} />
   <Route path="/login" component={LoginPage} />
   <Route path="/register" component={RegisterPage} />
         <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />
       </Switch>
+      </Suspense>
     </>
   );
 }

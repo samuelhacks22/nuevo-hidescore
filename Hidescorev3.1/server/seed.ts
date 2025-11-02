@@ -9,6 +9,10 @@ const sampleMovies = [
     genre: ["Drama"],
     platform: ["Netflix", "Amazon Prime"],
     director: "Frank Darabont",
+    platformLinks: [
+      `https://www.netflix.com/search?q=${encodeURIComponent("The Shawshank Redemption")}`,
+      `https://www.amazon.com/s?k=${encodeURIComponent("The Shawshank Redemption")}&i=instant-video`
+    ],
     cast: ["Tim Robbins", "Morgan Freeman", "Bob Gunton"],
     runtime: 142,
     language: "English",
@@ -22,6 +26,9 @@ const sampleMovies = [
     genre: ["Action", "Crime", "Drama"],
     platform: ["HBO Max"],
     director: "Christopher Nolan",
+    platformLinks: [
+      `https://www.hbomax.com/search?q=${encodeURIComponent("The Dark Knight")}`
+    ],
     cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
     runtime: 152,
     language: "English",
@@ -35,6 +42,9 @@ const sampleMovies = [
     genre: ["Sci-Fi", "Thriller", "Action"],
     platform: ["Netflix"],
     director: "Christopher Nolan",
+    platformLinks: [
+      `https://www.netflix.com/search?q=${encodeURIComponent("Inception")}`
+    ],
     cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page"],
     runtime: 148,
     language: "English",
@@ -48,6 +58,9 @@ const sampleMovies = [
     genre: ["Crime", "Drama"],
     platform: ["Amazon Prime"],
     director: "Quentin Tarantino",
+    platformLinks: [
+      `https://www.amazon.com/s?k=${encodeURIComponent("Pulp Fiction")}&i=instant-video`
+    ],
     cast: ["John Travolta", "Uma Thurman", "Samuel L. Jackson"],
     runtime: 154,
     language: "English",
@@ -61,6 +74,9 @@ const sampleMovies = [
     genre: ["Sci-Fi", "Action"],
     platform: ["HBO Max"],
     director: "Lana Wachowski, Lilly Wachowski",
+    platformLinks: [
+      `https://www.hbomax.com/search?q=${encodeURIComponent("The Matrix")}`
+    ],
     cast: ["Keanu Reeves", "Laurence Fishburne", "Carrie-Anne Moss"],
     runtime: 136,
     language: "English",
@@ -74,6 +90,9 @@ const sampleMovies = [
     genre: ["Sci-Fi", "Drama", "Adventure"],
     platform: ["Paramount+"],
     director: "Christopher Nolan",
+    platformLinks: [
+      `https://www.paramountplus.com/search/?q=${encodeURIComponent("Interstellar")}`
+    ],
     cast: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"],
     runtime: 169,
     language: "English",
@@ -91,6 +110,9 @@ const sampleSeries = [
     genre: ["Crime", "Drama", "Thriller"],
     platform: ["Netflix"],
     creator: "Vince Gilligan",
+    platformLinks: [
+      `https://www.netflix.com/search?q=${encodeURIComponent("Breaking Bad")}`
+    ],
     cast: ["Bryan Cranston", "Aaron Paul", "Anna Gunn"],
     seasons: 5,
     episodes: 62,
@@ -106,6 +128,9 @@ const sampleSeries = [
     genre: ["Fantasy", "Drama", "Adventure"],
     platform: ["HBO Max"],
     creator: "David Benioff, D.B. Weiss",
+    platformLinks: [
+      `https://www.hbomax.com/search?q=${encodeURIComponent("Game of Thrones")}`
+    ],
     cast: ["Emilia Clarke", "Peter Dinklage", "Kit Harington"],
     seasons: 8,
     episodes: 73,
@@ -120,6 +145,9 @@ const sampleSeries = [
     genre: ["Sci-Fi", "Horror", "Drama"],
     platform: ["Netflix"],
     creator: "The Duffer Brothers",
+    platformLinks: [
+      `https://www.netflix.com/search?q=${encodeURIComponent("Stranger Things")}`
+    ],
     cast: ["Millie Bobby Brown", "Finn Wolfhard", "Winona Ryder"],
     seasons: 4,
     episodes: 34,
@@ -134,6 +162,9 @@ const sampleSeries = [
     genre: ["Drama", "Documentary"],
     platform: ["Netflix"],
     creator: "Peter Morgan",
+    platformLinks: [
+      `https://www.netflix.com/search?q=${encodeURIComponent("The Crown")}`
+    ],
     cast: ["Claire Foy", "Olivia Colman", "Imelda Staunton"],
     seasons: 6,
     episodes: 60,
@@ -148,6 +179,9 @@ const sampleSeries = [
     genre: ["Sci-Fi", "Action", "Adventure"],
     platform: ["Disney+"],
     creator: "Jon Favreau",
+    platformLinks: [
+      `https://www.disneyplus.com/search?q=${encodeURIComponent("The Mandalorian")}`
+    ],
     cast: ["Pedro Pascal", "Gina Carano", "Giancarlo Esposito"],
     seasons: 3,
     episodes: 24,

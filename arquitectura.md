@@ -34,16 +34,15 @@ npm run db:push  # Sincroniza el schema con la base de datos
 ## Estructura de la Base de Datos
 
 ### Tablas Principales
-1. **users**: Usuarios registrados (integrados con Firebase)
+1. **users**: Usuarios registrados 
 2. **movies**: Catálogo de películas
 3. **series**: Catálogo de series
 4. **ratings**: Calificaciones de usuarios (para películas y series)
 5. **comments**: Comentarios de usuarios (para películas y series)
 
 ## Funcionalidades Principales
-- ✅ Autenticación con Google (Firebase)
 - ✅ Exploración de películas y series
-- ✅ Sistema de calificaciones (0-5 estrellas)
+- ✅ Sistema de calificaciones (0-5 estrellas) por promedios
 - ✅ Comentarios y reseñas
 - ✅ Panel de administrador
 - ✅ Perfiles de usuario

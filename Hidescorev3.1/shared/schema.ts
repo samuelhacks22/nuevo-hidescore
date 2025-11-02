@@ -23,6 +23,8 @@ export const movies = pgTable("movies", {
   releaseYear: integer("release_year").notNull(),
   genre: text("genre").array().notNull().default(sql`ARRAY[]::text[]`),
   platform: text("platform").array().notNull().default(sql`ARRAY[]::text[]`),
+  // parallel array of URLs for platforms, stored in the same order as `platform`
+  platformLinks: text("platform_links").array().notNull().default(sql`ARRAY[]::text[]`),
   director: text("director"),
   cast: text("cast").array().notNull().default(sql`ARRAY[]::text[]`),
   runtime: integer("runtime"),
@@ -46,6 +48,8 @@ export const series = pgTable("series", {
   endYear: integer("end_year"),
   genre: text("genre").array().notNull().default(sql`ARRAY[]::text[]`),
   platform: text("platform").array().notNull().default(sql`ARRAY[]::text[]`),
+  // parallel array of URLs for platforms, stored in the same order as `platform`
+  platformLinks: text("platform_links").array().notNull().default(sql`ARRAY[]::text[]`),
   creator: text("creator"),
   cast: text("cast").array().notNull().default(sql`ARRAY[]::text[]`),
   seasons: integer("seasons").notNull().default(1),
@@ -158,12 +162,22 @@ export const insertMovieSchema = createInsertSchema(movies).omit({
   updatedAt: true,
 });
 
+// allow platformLinks to be optionally provided on insert
+export const insertMovieSchemaWithLinks = insertMovieSchema.extend({
+  platformLinks: z.array(z.string()).optional(),
+});
+
 export const insertSeriesSchema = createInsertSchema(series).omit({
   id: true,
   averageRating: true,
   ratingCount: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// allow platformLinks to be optionally provided on insert
+export const insertSeriesSchemaWithLinks = insertSeriesSchema.extend({
+  platformLinks: z.array(z.string()).optional(),
 });
 
 export const insertRatingSchema = createInsertSchema(ratings).omit({
