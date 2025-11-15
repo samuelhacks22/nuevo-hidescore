@@ -68,7 +68,13 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // In Vercel, static files are served automatically, so we don't need to serve them here
+  // This function is only used for standalone server deployments
+  if (process.env.VERCEL) {
+    return;
+  }
+
+  const distPath = path.resolve(import.meta.dirname, "..", "dist");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(

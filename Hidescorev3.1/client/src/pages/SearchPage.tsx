@@ -18,6 +18,7 @@ function parseQuery(q: string) {
   const filters: any = { terms: [] };
   for (const tRaw of rawTokens) {
     const t = tRaw.trim();
+    if (!t) continue;
     const idx = t.indexOf(":");
     if (idx > 0) {
       const key = t.slice(0, idx).toLowerCase();
@@ -45,74 +46,175 @@ export default function SearchPage() {
 
   const filtered = useMemo(() => {
     const all: (Movie | Series)[] = [...(movies || []), ...(series || [])];
-    if (!all.length) return [];
+    if (!all.length || !q.trim()) return [];
     const filters = parseQuery(q);
 
     // scoring: prefer exact title matches, then startsWith, then includes
     const scored = all
       .map((item) => {
         let score = 0;
-        const title = (item.title || '').toLowerCase();
+        const title = (item.title || '').toLowerCase().trim();
         const description = (item.description || '').toLowerCase();
         const director = ((item as any).director || (item as any).creator || '').toLowerCase();
         const cast = ((item.cast || []) as string[]).join(' ').toLowerCase();
+        const genres = (item.genre || []).map(g => g.toLowerCase());
+        const platforms = (item.platform || []).map(p => p.toLowerCase());
 
         // explicit filters - if any fail, exclude with score -Infinity
         if (filters.platform && filters.platform.length > 0) {
-          const matches = filters.platform.some((p: string) => (item.platform || []).some(pp => pp.toLowerCase() === p.toLowerCase()));
+          const matches = filters.platform.some((p: string) => 
+            platforms.some(pp => pp === p.toLowerCase() || pp.includes(p.toLowerCase()) || p.toLowerCase().includes(pp))
+          );
           if (!matches) return { item, score: -Infinity };
+          // boost score if platform matches exactly
+          score += 15;
         }
         if (filters.genre && filters.genre.length > 0) {
-          const matches = filters.genre.some((g: string) => (item.genre || []).some(gg => gg.toLowerCase() === g.toLowerCase()));
+          const matches = filters.genre.some((g: string) => 
+            genres.some(gg => gg === g.toLowerCase() || gg.includes(g.toLowerCase()) || g.toLowerCase().includes(gg))
+          );
           if (!matches) return { item, score: -Infinity };
+          // boost score if genre matches
+          score += 10;
         }
         if (filters.year && filters.year.length > 0) {
-          const matches = filters.year.some((y: string) => String(item.releaseYear) === y);
+          const matches = filters.year.some((y: string) => {
+            const year = parseInt(y, 10);
+            if (isNaN(year)) return false;
+            return item.releaseYear === year || 
+                   (item.releaseYear >= year - 1 && item.releaseYear <= year + 1); // allow ±1 year
+          });
           if (!matches) return { item, score: -Infinity };
+          score += 5;
         }
         if (filters.type && filters.type.length > 0) {
-          const tmatch = filters.type.some((t: string) => t.toLowerCase() === ('title' in item ? 'movie' : 'series'));
+          const itemType = 'director' in item ? 'movie' : 'series';
+          const tmatch = filters.type.some((t: string) => {
+            const typeLower = t.toLowerCase();
+            return typeLower === itemType || 
+                   (typeLower === 'pelicula' && itemType === 'movie') ||
+                   (typeLower === 'serie' && itemType === 'series');
+          });
           if (!tmatch) return { item, score: -Infinity };
         }
         if (filters.title && filters.title.length > 0) {
-          const matches = filters.title.some((s: string) => title.includes(s.toLowerCase()));
+          const matches = filters.title.some((s: string) => {
+            const searchTerm = s.toLowerCase();
+            return title.includes(searchTerm) || 
+                   title.split(' ').some(word => word.startsWith(searchTerm));
+          });
           if (!matches) return { item, score: -Infinity };
+          score += 30; // boost for title filter match
         }
         if (filters.director && filters.director.length > 0) {
-          const matches = filters.director.some((s: string) => director.includes(s.toLowerCase()));
+          const matches = filters.director.some((s: string) => {
+            const searchTerm = s.toLowerCase();
+            return director.includes(searchTerm) || 
+                   director.split(' ').some(word => word.startsWith(searchTerm));
+          });
           if (!matches) return { item, score: -Infinity };
+          score += 12;
         }
         if (filters.actor && filters.actor.length > 0) {
-          const matches = filters.actor.some((s: string) => cast.includes(s.toLowerCase()));
+          const matches = filters.actor.some((s: string) => {
+            const searchTerm = s.toLowerCase();
+            return cast.includes(searchTerm) || 
+                   cast.split(' ').some(word => word.startsWith(searchTerm));
+          });
           if (!matches) return { item, score: -Infinity };
+          score += 8;
         }
 
-        // plain terms
+        // plain terms - improved matching
         if (filters.terms.length > 0) {
           for (const term of filters.terms) {
-            const t = term.toLowerCase();
-            if (title === t) score += 100;
-            else if (title.startsWith(t)) score += 50;
-            else if (title.includes(t)) score += 20;
-
-            if (description.includes(t)) score += 8;
-            if (director.includes(t)) score += 12;
-            if (cast.includes(t)) score += 6;
+            const t = term.toLowerCase().trim();
+            if (!t) continue;
+            
+            // Exact title match (highest priority)
+            if (title === t) {
+              score += 100;
+              continue;
+            }
+            
+            // Title starts with term
+            if (title.startsWith(t)) {
+              score += 60;
+              continue;
+            }
+            
+            // Title contains term as whole word
+            const titleWords = title.split(/\s+/);
+            if (titleWords.some(word => word === t || word.startsWith(t))) {
+              score += 40;
+              continue;
+            }
+            
+            // Title contains term (substring)
+            if (title.includes(t)) {
+              score += 25;
+            }
+            
+            // Description contains term
+            if (description.includes(t)) {
+              score += 10;
+            }
+            
+            // Director/Creator contains term
+            if (director.includes(t)) {
+              score += 15;
+            }
+            
+            // Cast contains term
+            const castWords = cast.split(/\s+/);
+            if (castWords.some(word => word === t || word.startsWith(t))) {
+              score += 8;
+            } else if (cast.includes(t)) {
+              score += 5;
+            }
+            
+            // Genre/platform partial match
+            if (genres.some(g => g.includes(t) || t.includes(g))) {
+              score += 6;
+            }
+            if (platforms.some(p => p.includes(t) || t.includes(p))) {
+              score += 6;
+            }
           }
         } else {
           // if no plain terms, give small base score so filters-only queries still return results
           score += 1;
         }
 
-        // boost by rating if available
-        if ((item as any).averageRating) {
-          score += ((item as any).averageRating || 0) * 2;
+        // boost by rating if available (normalized)
+        const rating = (item as any).averageRating || 0;
+        if (rating > 0) {
+          score += rating * 3; // increased weight for ratings
+        }
+        
+        // boost by rating count (popularity)
+        const ratingCount = (item as any).ratingCount || 0;
+        if (ratingCount > 0) {
+          score += Math.min(ratingCount / 10, 5); // cap at 5 points
         }
 
         return { item, score };
       })
       .filter((s) => s.score > -Infinity)
-      .sort((a, b) => b.score - a.score || ((b.item as any).averageRating || 0) - ((a.item as any).averageRating || 0));
+      .sort((a, b) => {
+        // Primary sort by score
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        // Secondary sort by rating
+        const ratingA = (a.item as any).averageRating || 0;
+        const ratingB = (b.item as any).averageRating || 0;
+        if (ratingB !== ratingA) {
+          return ratingB - ratingA;
+        }
+        // Tertiary sort by rating count
+        return ((b.item as any).ratingCount || 0) - ((a.item as any).ratingCount || 0);
+      });
 
     return scored.map((s) => s.item);
   }, [movies, series, q]);

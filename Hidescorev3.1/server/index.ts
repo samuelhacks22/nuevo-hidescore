@@ -7,8 +7,11 @@ import { seedDatabase } from "./seed";
 import { createApp } from "./app";
 
 (async () => {
-  // Seed database with sample data (only for the long-running server)
-  await seedDatabase();
+  // Seed database with sample data (only for the long-running server, not in serverless/production)
+  // Only seed in development or when explicitly requested
+  if (process.env.NODE_ENV === 'development' && !process.env.VERCEL) {
+    await seedDatabase();
+  }
 
   const { app } = await createApp();
 
