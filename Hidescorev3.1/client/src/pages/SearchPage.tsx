@@ -36,18 +36,41 @@ function parseQuery(q: string) {
 
 export default function SearchPage() {
   const [location] = useLocation();
-  const params = new URLSearchParams(location.split('?')[1] || '');
-  const q = params.get('q') || '';
+  
+  // Parse query parameter from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const q = urlParams.get('q') || '';
+  
+  // Also try parsing from location (fallback)
+  const locationParams = new URLSearchParams(location.split('?')[1] || '');
+  const qFromLocation = locationParams.get('q') || '';
+  
+  // Use whichever has a value
+  const searchQuery = q || qFromLocation;
+  
+  console.log('SearchPage - location:', location);
+  console.log('SearchPage - window.location.search:', window.location.search);
+  console.log('SearchPage - searchQuery:', searchQuery);
 
   const { data: movies, isLoading: mLoading } = useQuery<Movie[]>({ queryKey: ['/api/movies'] });
   const { data: series, isLoading: sLoading } = useQuery<Series[]>({ queryKey: ['/api/series'] });
 
   const isLoading = mLoading || sLoading;
+  
+  console.log('SearchPage - movies count:', movies?.length || 0);
+  console.log('SearchPage - series count:', series?.length || 0);
 
   const filtered = useMemo(() => {
     const all: (Movie | Series)[] = [...(movies || []), ...(series || [])];
-    if (!all.length || !q.trim()) return [];
-    const filters = parseQuery(q);
+    console.log('Filtered - all items:', all.length, 'searchQuery:', searchQuery);
+    
+    if (!all.length || !searchQuery.trim()) {
+      console.log('Filtered - returning empty: all.length=', all.length, 'searchQuery.trim()=', searchQuery.trim());
+      return [];
+    }
+    
+    const filters = parseQuery(searchQuery);
+    console.log('Filtered - parsed filters:', filters);
 
     // scoring: prefer exact title matches, then startsWith, then includes
     const scored = all
@@ -125,60 +148,84 @@ export default function SearchPage() {
           score += 8;
         }
 
-        // plain terms - improved matching
+        // plain terms - improved matching with emphasis on title
         if (filters.terms.length > 0) {
+          // Join all terms for phrase matching
+          const allTerms = filters.terms.join(' ').toLowerCase().trim();
+          const titleLower = title.toLowerCase();
+          
+          // Exact title match (highest priority) - check if all terms match the title exactly
+          if (titleLower === allTerms) {
+            score += 200;
+          }
+          // Title starts with all terms
+          else if (titleLower.startsWith(allTerms)) {
+            score += 150;
+          }
+          // Title contains all terms as phrase
+          else if (titleLower.includes(allTerms)) {
+            score += 120;
+          }
+          // Title contains all terms (not necessarily together)
+          else {
+            const allTermsInTitle = filters.terms.every(term => titleLower.includes(term.toLowerCase()));
+            if (allTermsInTitle) {
+              score += 100;
+            }
+          }
+          
+          // Individual term matching for additional scoring
           for (const term of filters.terms) {
             const t = term.toLowerCase().trim();
             if (!t) continue;
             
-            // Exact title match (highest priority)
-            if (title === t) {
-              score += 100;
-              continue;
+            // Skip if already matched above
+            if (titleLower.includes(t)) {
+              // Additional scoring for word boundaries in title
+              const titleWords = titleLower.split(/\s+/);
+              const wordMatch = titleWords.some(word => {
+                // Exact word match
+                if (word === t) return true;
+                // Word starts with term
+                if (word.startsWith(t) && word.length > t.length) return true;
+                // Term is a significant part of the word
+                if (word.includes(t) && t.length >= 3) return true;
+                return false;
+              });
+              
+              if (wordMatch) {
+                // Already scored above, but add bonus for word boundary match
+                if (!titleLower.startsWith(t) && titleLower !== t) {
+                  score += 15;
+                }
+              }
+              continue; // Skip other checks for title matches
             }
             
-            // Title starts with term
-            if (title.startsWith(t)) {
-              score += 60;
-              continue;
-            }
-            
-            // Title contains term as whole word
-            const titleWords = title.split(/\s+/);
-            if (titleWords.some(word => word === t || word.startsWith(t))) {
-              score += 40;
-              continue;
-            }
-            
-            // Title contains term (substring)
-            if (title.includes(t)) {
-              score += 25;
-            }
-            
-            // Description contains term
+            // Description contains term (lower priority than title)
             if (description.includes(t)) {
-              score += 10;
+              score += 8;
             }
             
             // Director/Creator contains term
             if (director.includes(t)) {
-              score += 15;
+              score += 12;
             }
             
             // Cast contains term
             const castWords = cast.split(/\s+/);
             if (castWords.some(word => word === t || word.startsWith(t))) {
-              score += 8;
+              score += 6;
             } else if (cast.includes(t)) {
-              score += 5;
+              score += 4;
             }
             
-            // Genre/platform partial match
+            // Genre/platform partial match (lowest priority)
             if (genres.some(g => g.includes(t) || t.includes(g))) {
-              score += 6;
+              score += 3;
             }
             if (platforms.some(p => p.includes(t) || t.includes(p))) {
-              score += 6;
+              score += 3;
             }
           }
         } else {
@@ -216,25 +263,43 @@ export default function SearchPage() {
         return ((b.item as any).ratingCount || 0) - ((a.item as any).ratingCount || 0);
       });
 
-    return scored.map((s) => s.item);
-  }, [movies, series, q]);
+    const results = scored.map((s) => s.item);
+    console.log('Filtered - results count:', results.length);
+    return results;
+  }, [movies, series, searchQuery]);
 
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold mb-6">Resultados de búsqueda{q ? `: "${q}"` : ''}</h1>
+        <h1 className="text-3xl font-bold mb-6">
+          {searchQuery ? `Resultados de búsqueda: "${searchQuery}"` : 'Búsqueda'}
+        </h1>
 
-        {isLoading ? (
-          <p>Cargando resultados...</p>
-        ) : filtered.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map((item) => (
-              <ContentCard key={item.id} content={{ ...item, type: 'title' in item ? 'movie' : 'series' } as any} />
-            ))}
+        {!searchQuery.trim() ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg mb-2">Ingresa un término de búsqueda en la barra superior</p>
+            <p className="text-sm">Ejemplo: "batman", "breaking bad", "inception"</p>
           </div>
+        ) : isLoading ? (
+          <div className="text-center py-16">
+            <p className="text-lg">Cargando resultados...</p>
+          </div>
+        ) : filtered.length > 0 ? (
+          <>
+            <p className="text-muted-foreground mb-6">
+              Se encontraron {filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filtered.map((item) => (
+                <ContentCard key={item.id} content={{ ...item, type: 'director' in item ? 'movie' : 'series' } as any} />
+              ))}
+            </div>
+          </>
         ) : (
           <div className="text-center py-16 text-muted-foreground">
-            <p className="text-lg">No se encontraron resultados.</p>
+            <p className="text-lg mb-2">No se encontraron resultados para "{searchQuery}"</p>
+            <p className="text-sm">Intenta con otros términos de búsqueda o verifica la ortografía</p>
+            <p className="text-xs mt-4">Debug: Total items: {((movies || []).length + (series || []).length)}</p>
           </div>
         )}
       </div>

@@ -47,7 +47,7 @@ export default function HomePage() {
               <span className="block text-primary mt-2">Película Favorita</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-              Califica, reseña y obtén recomendaciones personalizadas impulsadas por IA
+              Califica, reseña y obtén recomendaciones personalizadas
             </p>
           </div>
 

@@ -258,45 +258,74 @@ export function MovieDialog({ open, onOpenChange, movie, onSubmit }: MovieDialog
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="genre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Géneros *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Acción, Drama, Comedia" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+            <FormField
+              control={form.control}
+              name="genre"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Géneros *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Acción, Drama, Comedia" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-2">
+              <FormLabel>Plataformas y Links</FormLabel>
+              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+                {fields.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No hay plataformas añadidas. Haz clic en "Añadir plataforma" para comenzar.</p>
                 )}
-              />
-
-            <div>
-              <FormItem>
-                <FormLabel>Plataformas y Links</FormLabel>
-                <FormMessage />
-              </FormItem>
-
-              {fields.map((f, idx) => (
-                <div key={f.id} className="flex gap-2 items-center mb-2">
-                  <FormControl>
-                    <Input {...form.register(`platformPairs.${idx}.name` as const)} placeholder="Nombre de la plataforma (ej. Netflix)" />
-                  </FormControl>
-                  <FormControl>
-                    <Input {...form.register(`platformPairs.${idx}.link` as const)} placeholder="https://... (opcional)" />
-                  </FormControl>
-                  <Button type="button" variant="ghost" onClick={() => remove(idx)}>
-                    Eliminar
-                  </Button>
-                </div>
-              ))}
-
-              <Button type="button" onClick={() => append({ name: "", link: "" })}>
-                Añadir plataforma
-              </Button>
-            </div>
+                {fields.map((f, idx) => (
+                  <div key={f.id} className="flex gap-2 items-start">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`platformPairs.${idx}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} placeholder="Nombre (ej. Netflix)" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`platformPairs.${idx}.link`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} type="url" placeholder="https://... (opcional)" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => remove(idx)}
+                      className="mt-0"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => append({ name: "", link: "" })}
+                  className="w-full"
+                >
+                  + Añadir plataforma
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

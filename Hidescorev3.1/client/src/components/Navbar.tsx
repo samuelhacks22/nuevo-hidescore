@@ -31,8 +31,11 @@ export function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      const searchUrl = `/search?q=${encodeURIComponent(trimmedQuery)}`;
+      console.log('Navigating to:', searchUrl);
+      setLocation(searchUrl);
     }
   };
 
@@ -95,18 +98,26 @@ export function Navbar() {
           </div>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md mx-6">
+          <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md mx-6 gap-2">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Buscar películas, series..."
+                placeholder="Buscar por nombre de película o serie..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-card border-card-border"
                 data-testid="input-search"
               />
             </div>
+            <Button 
+              type="submit" 
+              size="sm"
+              disabled={!searchQuery.trim()}
+              data-testid="button-search"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </form>
 
           {/* User Menu */}
@@ -177,17 +188,25 @@ export function Navbar() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
-            <form onSubmit={handleSearch} className="mb-4">
+            <form onSubmit={handleSearch} className="mb-4 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Buscar..."
+                  placeholder="Buscar por nombre..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={!searchQuery.trim()}
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Buscar
+              </Button>
             </form>
             <div className="space-y-2">
               {navLinks.map((link) => (
