@@ -13,8 +13,22 @@ async function getHandler(): Promise<any> {
     console.log('[API] DATABASE_URL available:', !!process.env.DATABASE_URL);
     console.log('[API] VERCEL environment:', !!process.env.VERCEL);
     
-    // Create the express app using the server's createApp helper
-    const mod = await import('../server/app');
+    // In Vercel, we need to use the compiled version from dist
+    // Try to import from dist first (production), fallback to server (dev)
+    // Note: In ES modules, we must use .js extension even when importing TypeScript files
+    let mod: any;
+    try {
+      // @ts-ignore: dist/server/app.js is a compiled JS file without type definitions
+      mod = await import('../dist/server/app.js');
+      console.log('[API] Using compiled app from dist/server/app.js');
+    } catch (e) {
+      // Fallback to server source - Vercel will compile TypeScript automatically
+      // Must use .js extension for ES modules even though file is .ts
+      console.log('[API] Dist not found, trying server source...');
+      // @ts-ignore: Vercel compiles TypeScript, but we use .js extension for ES modules
+      mod = await import('../server/app.js');
+    }
+    
     const { createApp } = mod;
     const { app } = await createApp();
 
@@ -50,6 +64,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`[API] ${req.method} ${req.url}`);
     
+    // Always use the cached handler if available
+    if (cachedHandler) {
+      return cachedHandler(req, res);
+    }
+    
     // prefer the bundled server/app if available (produced by `npm run build`)
     try {
       // @ts-ignore: dist/server/app.js is a compiled JS file without type definitions
@@ -72,6 +91,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           res.status(status).json({ error: message });
         });
         
+        // Cache the handler
+        cachedHandler = app as any;
         return app(req, res);
       }
     } catch (e: any) {
@@ -79,6 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log('[API] Build not found, using runtime app:', e?.message || e);
     }
 
+    // Use getHandler as fallback
     const h = await getHandler();
     return h(req, res);
   } catch (error: any) {
