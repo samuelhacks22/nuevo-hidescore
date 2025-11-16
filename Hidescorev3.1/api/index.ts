@@ -67,12 +67,23 @@ async function getHandler(): Promise<any> {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`[API] ${req.method} ${req.url}`);
-    
+
+    // If DATABASE_URL is not configured, avoid importing the compiled app
+    // which will throw on import. Return a clear 503 to help debugging.
+    if (!process.env.DATABASE_URL) {
+      console.error('[API] DATABASE_URL is not configured — returning 503');
+      res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'DATABASE_URL is not configured on the server. Configure DATABASE_URL in your environment variables and redeploy.'
+      });
+      return;
+    }
+
     // Always use the cached handler if available
     if (cachedHandler) {
       return cachedHandler(req, res);
     }
-    
+
     // prefer the bundled server/app if available (produced by `npm run build`)
     try {
       // @ts-ignore: dist/server/app.js is a compiled JS file without type definitions
@@ -81,7 +92,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log('[API] Using built app from dist/server/app.js');
         const { createApp } = built as any;
         const { app } = await createApp();
-        
+
         // Add error handler
         app.use((err: any, _req: any, res: any, _next: any) => {
           const status = err.status || err.statusCode || 500;
@@ -94,7 +105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           });
           res.status(status).json({ error: message });
         });
-        
+
         // Cache the handler
         cachedHandler = app as any;
         return app(req, res);
