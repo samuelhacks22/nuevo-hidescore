@@ -35,6 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // prefer the bundled server/app if available (produced by `npm run build`)
     try {
+      // @ts-ignore: dist/server/app.js is a compiled JS file without type definitions
       const built = await import('../dist/server/app.js');
       if (built && typeof (built.createApp) === 'function') {
         const { createApp } = built as any;
