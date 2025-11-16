@@ -98,13 +98,33 @@ Vercel usará automáticamente:
 **Solución**: 
 - **CRÍTICO**: Verifica que `DATABASE_URL` esté correctamente configurada en las Variables de Entorno de Vercel:
   1. Ve a tu proyecto en Vercel
-  2. Settings → Environment Variables
-  3. Asegúrate de que `DATABASE_URL` esté configurada para Production, Preview y Development
-  4. El formato debe ser: `postgresql://user:password@host:5432/database?sslmode=require`
-- Verifica los logs en Vercel (Functions → View Function Logs) para ver errores específicos
-- Asegúrate de que la base de datos permita conexiones desde Vercel (whitelist de IPs si es necesario)
-- Para Neon, esto normalmente no es necesario, pero verifica que la conexión esté habilitada
-- **Si recién agregaste la variable de entorno**: Necesitas hacer un nuevo deploy para que se apliquen los cambios
+  2. **Settings** → **Environment Variables**
+  3. Busca `DATABASE_URL` en la lista
+  4. **VERIFICA** que esté configurada para **Production, Preview Y Development** (marca las 3 casillas)
+  5. El formato debe ser: `postgresql://user:password@host:5432/database?sslmode=require`
+  6. Si no existe, **agrégala**:
+     - Click en "Add New"
+     - Key: `DATABASE_URL`
+     - Value: Tu connection string completa
+     - Marca **Production, Preview y Development**
+     - Click en "Save"
+
+- **PASO MÁS IMPORTANTE**: **Después de agregar/actualizar variables de entorno, DEBES hacer un nuevo deploy**:
+  1. Ve a **Deployments**
+  2. Haz click en los **3 puntos** del último deployment
+  3. Selecciona **"Redeploy"**
+  4. **NO** simplemente esperes, haz el redeploy manualmente
+
+- **Verifica los logs**:
+  1. Ve a **Functions** → **View Function Logs** en Vercel
+  2. Busca mensajes que empiecen con `[DB]` o `[API]`
+  3. Si ves `[DB] DATABASE_URL exists: false`, la variable no está configurada o no se hizo redeploy
+  4. Si ves `[DB] DATABASE_URL exists: true`, entonces el problema es la conexión a la base de datos
+
+- **Si `DATABASE_URL` existe pero aún falla**:
+  - Verifica que la base de datos permita conexiones desde Vercel (whitelist de IPs si es necesario)
+  - Para Neon, esto normalmente no es necesario, pero verifica que la conexión esté habilitada
+  - Asegúrate de que la connection string sea correcta y tenga `?sslmode=require` al final
 
 ### Error: "Build failed"
 

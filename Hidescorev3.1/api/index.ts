@@ -10,8 +10,12 @@ async function getHandler(): Promise<any> {
 
   try {
     console.log('[API] Initializing handler...');
-    console.log('[API] DATABASE_URL available:', !!process.env.DATABASE_URL);
-    console.log('[API] VERCEL environment:', !!process.env.VERCEL);
+    console.log('[API] Environment check:');
+    console.log('[API] - DATABASE_URL available:', !!process.env.DATABASE_URL);
+    console.log('[API] - DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
+    console.log('[API] - VERCEL environment:', !!process.env.VERCEL);
+    console.log('[API] - NODE_ENV:', process.env.NODE_ENV || 'not set');
+    console.log('[API] - All env vars:', Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('VERCEL')));
     
     // In Vercel, we need to use the compiled version from dist
     // Try to import from dist first (production), fallback to server (dev)

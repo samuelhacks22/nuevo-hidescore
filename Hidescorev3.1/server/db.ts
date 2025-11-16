@@ -25,10 +25,20 @@ if (process.env.VERCEL) {
   }
 }
 
+// Log environment info for debugging
+console.log('[DB] Environment check:');
+console.log('[DB] - VERCEL:', process.env.VERCEL || 'not set');
+console.log('[DB] - NODE_ENV:', process.env.NODE_ENV || 'not set');
+console.log('[DB] - DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('[DB] - DATABASE_URL length:', process.env.DATABASE_URL?.length || 0);
+console.log('[DB] - DATABASE_URL preview:', process.env.DATABASE_URL ? 
+  `${process.env.DATABASE_URL.substring(0, 20)}...` : 'not set');
+
 if (!process.env.DATABASE_URL) {
-  console.error('[DB] DATABASE_URL environment variable is not set');
+  console.error('[DB] ❌ DATABASE_URL environment variable is not set!');
+  console.error('[DB] This means the variable was not configured in Vercel or not redeployed after adding it.');
   throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
+    "DATABASE_URL must be set. Please configure it in Vercel Settings → Environment Variables and redeploy.",
   );
 }
 
@@ -48,8 +58,29 @@ const databaseUrl = cleanDatabaseUrl(process.env.DATABASE_URL);
 const urlParts = databaseUrl.split('@');
 if (urlParts.length > 1) {
   const hostPart = urlParts[urlParts.length - 1];
-  console.log(`[DB] Connecting to database at: ${hostPart.split('?')[0]}`);
+  console.log(`[DB] ✅ Connecting to database at: ${hostPart.split('?')[0]}`);
+  console.log(`[DB] ✅ Database URL is valid (${databaseUrl.length} characters)`);
+} else {
+  console.warn('[DB] ⚠️ Database URL format might be incorrect');
 }
 
 export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });
+
+// Test connection in Vercel environment (async, non-blocking)
+if (process.env.VERCEL) {
+  (async () => {
+    try {
+      console.log('[DB] Testing database connection...');
+      const testResult = await pool.query('SELECT NOW() as current_time');
+      console.log('[DB] ✅ Database connection successful!', testResult.rows[0]);
+    } catch (error: any) {
+      console.error('[DB] ❌ Database connection failed:', {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name
+      });
+      // Don't throw here, let it fail when actually querying
+    }
+  })();
+}
