@@ -131,9 +131,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/movies/trending", async (req, res) => {
     try {
+      console.log('[API] GET /api/movies/trending');
       const movies = await storage.getAllMovies({ sortBy: 'popularity' });
+      console.log(`[API] Found ${movies.length} movies`);
       res.json(movies.slice(0, 12));
     } catch (error: any) {
+      console.error('[API] Error in /api/movies/trending:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -212,9 +215,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/series/trending", async (req, res) => {
     try {
+      console.log('[API] GET /api/series/trending');
       const series = await storage.getAllSeries({ sortBy: 'popularity' });
+      console.log(`[API] Found ${series.length} series`);
       res.json(series.slice(0, 12));
     } catch (error: any) {
+      console.error('[API] Error in /api/series/trending:', error);
       res.status(500).json({ error: error.message });
     }
   });
@@ -369,6 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Recommendations endpoint (AI-powered, stub for now)
   app.get("/api/recommendations", async (req, res) => {
     try {
+      console.log('[API] GET /api/recommendations');
       // If Gemini is configured and user has ratings, generate personalized recommendations
       // For now, return trending content as a fallback
       const movies = await storage.getAllMovies({ sortBy: 'rating' });
@@ -379,9 +386,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...series.slice(0, 4).map(s => ({ ...s, type: 'series' as const })),
       ];
 
-      
+      console.log(`[API] Returning ${combined.length} recommendations`);
       res.json(combined);
     } catch (error: any) {
+      console.error('[API] Error in /api/recommendations:', error);
       res.status(500).json({ error: error.message });
     }
   });

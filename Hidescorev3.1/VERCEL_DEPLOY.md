@@ -29,7 +29,11 @@ git push
 
 ### 3. Configurar Variables de Entorno
 
-En la configuración del proyecto en Vercel, añade las siguientes variables de entorno:
+**IMPORTANTE**: Este paso es crítico. Sin las variables de entorno correctas, la aplicación no podrá conectarse a la base de datos.
+
+En la configuración del proyecto en Vercel:
+1. Ve a **Settings** → **Environment Variables**
+2. Añade las siguientes variables de entorno para **todos los ambientes** (Production, Preview, Development):
 
 #### Variables Requeridas
 
@@ -37,7 +41,16 @@ En la configuración del proyecto en Vercel, añade las siguientes variables de 
   ```
   postgresql://user:password@host:5432/database?sslmode=require
   ```
-  Si usas Neon, lo encontrarás en el dashboard de tu proyecto.
+  Si usas Neon:
+  - Ve a tu proyecto en Neon
+  - Dashboard → Connection Details
+  - Copia la connection string
+  - Asegúrate de incluir `?sslmode=require` al final
+  
+  **⚠️ Importante**: Después de agregar/actualizar variables de entorno, necesitas hacer un nuevo deploy:
+  - Ve a Deployments
+  - Haz clic en los 3 puntos del último deployment
+  - Selecciona "Redeploy"
 
 #### Variables Opcionales
 
@@ -80,12 +93,18 @@ Vercel usará automáticamente:
 
 **Solución**: Asegúrate de que todas las dependencias estén en `dependencies` (no solo en `devDependencies`)
 
-### Error: "Database connection failed"
+### Error: "Database connection failed" o "No se muestran los datos"
 
 **Solución**: 
-- Verifica que `DATABASE_URL` esté correctamente configurada
+- **CRÍTICO**: Verifica que `DATABASE_URL` esté correctamente configurada en las Variables de Entorno de Vercel:
+  1. Ve a tu proyecto en Vercel
+  2. Settings → Environment Variables
+  3. Asegúrate de que `DATABASE_URL` esté configurada para Production, Preview y Development
+  4. El formato debe ser: `postgresql://user:password@host:5432/database?sslmode=require`
+- Verifica los logs en Vercel (Functions → View Function Logs) para ver errores específicos
 - Asegúrate de que la base de datos permita conexiones desde Vercel (whitelist de IPs si es necesario)
-- Para Neon, esto normalmente no es necesario
+- Para Neon, esto normalmente no es necesario, pero verifica que la conexión esté habilitada
+- **Si recién agregaste la variable de entorno**: Necesitas hacer un nuevo deploy para que se apliquen los cambios
 
 ### Error: "Build failed"
 
@@ -93,6 +112,14 @@ Vercel usará automáticamente:
 - Revisa los logs de build en Vercel
 - Asegúrate de que `npm run build` funcione localmente
 - Verifica que no haya errores de TypeScript (`npm run check`)
+
+### La API responde pero no hay datos
+
+**Solución**:
+- Verifica los logs de la función serverless en Vercel
+- Busca mensajes que empiecen con `[DB]` o `[API]` para ver qué está pasando
+- Asegúrate de que la base de datos tenga datos (el seed NO se ejecuta automáticamente en producción)
+- Prueba hacer una query directamente a la base de datos para verificar que tenga datos
 
 ### Las rutas de la SPA no funcionan
 

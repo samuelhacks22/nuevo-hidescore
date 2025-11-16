@@ -1,12 +1,12 @@
 # Explicación Detallada de HideScore v3.1
 
-## 📋 Resumen General
+## Resumen General
 
 **HideScore** es una aplicación web full-stack para descubrir, calificar y reseñar películas y series. Los usuarios pueden explorar contenido, dejar calificaciones con estrellas, escribir comentarios y obtener recomendaciones. Los administradores pueden gestionar el catálogo de contenido y usuarios.
 
 ---
 
-## 🏗️ Arquitectura General
+##  Arquitectura General
 
 ### Stack Tecnológico
 
@@ -33,7 +33,7 @@ PostgreSQL (Neon)
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ### Carpetas Principales
 
@@ -63,7 +63,7 @@ Hidescorev3.1/
 
 ---
 
-## 🗄️ Base de Datos
+##  Base de Datos
 
 ### Tablas Principales
 
@@ -122,7 +122,7 @@ Hidescorev3.1/
 
 ---
 
-## 🔐 Autenticación y Autorización
+## Autenticación y Autorización
 
 ### Sistema Actual (Simple)
 
@@ -156,7 +156,7 @@ Hidescorev3.1/
 
 ---
 
-## 🔄 Flujos de Datos Principales
+##  Flujos de Datos Principales
 
 ### 1. Flujo de Calificación
 
@@ -224,7 +224,7 @@ UI muestra grid de ContentCard
 
 ---
 
-## 📄 Páginas Principales
+##  Páginas Principales
 
 ### 1. **HomePage** (`/`)
 - Hero section con call-to-action
@@ -274,7 +274,7 @@ UI muestra grid de ContentCard
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Públicos (sin autenticación)
 
@@ -369,7 +369,7 @@ UI muestra grid de ContentCard
 
 ---
 
-## 🎨 Componentes Clave
+##  Componentes Clave
 
 ### Frontend
 
@@ -413,7 +413,7 @@ UI muestra grid de ContentCard
 
 ---
 
-## 🔧 Funcionalidades Especiales
+##  Funcionalidades Especiales
 
 ### 1. **Cálculo Automático de Calificaciones**
 Cuando se crea/actualiza/elimina una calificación:
@@ -439,7 +439,7 @@ Cuando se crea/actualiza/elimina una calificación:
 
 ---
 
-## 🚀 Desarrollo y Despliegue
+##  Desarrollo y Despliegue
 
 ### Comandos Principales
 
@@ -470,7 +470,7 @@ npm run check
 
 ---
 
-## 🔮 Mejoras Futuras Recomendadas
+##  Mejoras Futuras Recomendadas
 
 1. **Autenticación más robusta**: JWT o cookies HttpOnly
 2. **Prevención de duplicados**: Un usuario solo puede tener una calificación por contenido (o hacer POST idempotente)
@@ -484,7 +484,7 @@ npm run check
 
 ---
 
-## 📝 Resumen de Flujos de Usuario
+## Resumen de Flujos de Usuario
 
 ### Usuario No Autenticado
 1. Navega por películas/series
