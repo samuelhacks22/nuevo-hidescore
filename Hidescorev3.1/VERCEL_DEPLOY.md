@@ -286,6 +286,27 @@ Opciones para agregar datos:
    DATABASE_URL="postgresql://..." npm run db:push
    ```
 
+### Deploy-time Migrations y Seed (opcional)
+
+Hemos añadido un paso opcional que ejecuta las migraciones y el seed durante la fase de build de Vercel si `DATABASE_URL` está presente en el entorno de build.
+
+- Durante el build Vercel ejecuta `npm run vercel-build`.
+- `vercel-build` ahora hace `npm run build` y luego ejecuta `scripts/vercel-init.js`.
+- `scripts/vercel-init.js` hace lo siguiente:
+  - Si `DATABASE_URL` NO está definido en el entorno de build, se salta migraciones/seed.
+  - Si `DATABASE_URL` está definido: ejecuta `npx drizzle-kit push` y, si existe, ejecuta `dist/server/seed.js`.
+
+Recomendaciones:
+
+- Asegúrate de que `DATABASE_URL` esté configurada en Vercel antes de desplegar (Settings → Environment Variables) y marcada para **Production** y **Preview** si quieres aplicar migraciones durante build.
+- Las migraciones se ejecutan en el momento de build, por lo que la base de datos debe aceptar conexiones desde el entorno de build (normalmente está bien con Neon).
+- Si prefieres no ejecutar migraciones/seeds en build, simplemente no configures `DATABASE_URL` en el entorno de build y en su lugar ejecuta las migraciones/seed manualmente desde tu máquina o CI.
+
+Precaución:
+
+- Ejecutar migraciones durante el build puede exponer la base de datos a cambios desde el entorno de build; si tienes políticas de seguridad estrictas, ejecuta migraciones desde un pipeline controlado o manualmente.
+
+
 ## Límites y Consideraciones
 
 - **Timeout**: 30 segundos máximo por request
