@@ -218,6 +218,8 @@ export async function seedDatabase() {
     console.log("Database seeded successfully!");
   } catch (error) {
     console.error("Error seeding database:", error);
-    throw error;
+    // Do not rethrow - seeding should be best-effort during development.
+    // This prevents a failed seed (e.g. network / WebSocket issues) from crashing the dev server.
+    return;
   }
 }

@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/app.ts server/seed.ts --platform=node --packages=external --bundle --format=esm --outdir=dist/server --external:@neondatabase/serverless --external:ws --external:bcryptjs",
+    "build": "vite build && esbuild server/app.ts server/seed.ts --platform=node --packages=external --bundle --format=esm --outdir=dist/server --external:@neondatabase/serverless --external:ws --external:bcryptjs && esbuild server/index.ts --platform=node --bundle --format=esm --outfile=dist/index.js --external:@neondatabase/serverless --external:ws --external:bcryptjs",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "env:save": "node ./scripts/save-env.js",

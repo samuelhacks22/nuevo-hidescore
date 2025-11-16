@@ -8,9 +8,19 @@ import { createApp } from "./app";
 
 (async () => {
   // Seed database with sample data (only for the long-running server, not in serverless/production)
-  // Only seed in development or when explicitly requested
+  // Only seed in development when `SEED_DATABASE` is set to '1' or 'true'.
+  // This avoids automatically failing the dev server if DB connectivity (e.g. websockets) is flaky.
+  const shouldSeed = String(process.env.SEED_DATABASE || "").toLowerCase() === "1" || String(process.env.SEED_DATABASE || "").toLowerCase() === "true";
   if (process.env.NODE_ENV === 'development' && !process.env.VERCEL) {
-    await seedDatabase();
+    if (shouldSeed) {
+      try {
+        await seedDatabase();
+      } catch (err) {
+        console.error('[SEED] seedDatabase failed (continuing):', err);
+      }
+    } else {
+      console.log('[SEED] Automatic seeding is disabled. Set SEED_DATABASE=1 to enable.');
+    }
   }
 
   const { app } = await createApp();
