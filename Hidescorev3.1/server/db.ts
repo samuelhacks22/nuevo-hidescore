@@ -5,21 +5,25 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from "@shared/schema";
 
-// Configure WebSocket constructor only if not in Vercel environment
-// In Vercel, @neondatabase/serverless uses HTTP fetch automatically
-// Use a conditional import approach for better compatibility
-(async () => {
-  if (typeof WebSocket === 'undefined' && !process.env.VERCEL) {
-    try {
-      // Use dynamic import to avoid issues in serverless environments
-      const wsModule = await import("ws");
-      neonConfig.webSocketConstructor = wsModule.default || wsModule;
-    } catch (e) {
-      // In Vercel, WebSockets are not needed as it uses HTTP fetch
-      console.warn('WebSocket module not available, using default configuration');
+// Configure for Vercel serverless environment
+// In Vercel, @neondatabase/serverless uses HTTP fetch automatically, no WebSocket needed
+if (process.env.VERCEL) {
+  console.log('[DB] Configuring for Vercel serverless environment');
+  neonConfig.fetchConnectionCache = true;
+} else {
+  // Only configure WebSocket for non-Vercel environments
+  // Use a try-catch to handle cases where ws might not be available
+  try {
+    // @ts-ignore: ws might not be available in all environments
+    const ws = require("ws");
+    if (typeof WebSocket === 'undefined' && ws) {
+      neonConfig.webSocketConstructor = ws.default || ws;
     }
+  } catch (e) {
+    // WebSocket not available, but that's OK for Vercel
+    console.warn('[DB] WebSocket module not available, using default configuration');
   }
-})();
+}
 
 if (!process.env.DATABASE_URL) {
   console.error('[DB] DATABASE_URL environment variable is not set');
@@ -39,14 +43,6 @@ const cleanDatabaseUrl = (url: string): string => {
 };
 
 const databaseUrl = cleanDatabaseUrl(process.env.DATABASE_URL);
-
-// Configure fetch for Vercel serverless environment
-if (process.env.VERCEL) {
-  console.log('[DB] Configuring for Vercel serverless environment');
-  neonConfig.fetchConnectionCache = true;
-} else {
-  console.log('[DB] Running in non-Vercel environment');
-}
 
 // Log connection info (without exposing credentials)
 const urlParts = databaseUrl.split('@');
