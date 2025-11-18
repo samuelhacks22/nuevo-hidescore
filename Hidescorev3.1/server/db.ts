@@ -4,6 +4,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 // @ts-ignore: missing type declarations for 'drizzle-orm/neon-serverless'
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from "@shared/schema";
+import ws from 'ws';
 
 // Configure for Vercel serverless environment
 // In Vercel, @neondatabase/serverless uses HTTP fetch automatically, no WebSocket needed
@@ -11,18 +12,9 @@ if (process.env.VERCEL) {
   console.log('[DB] Configuring for Vercel serverless environment');
   neonConfig.fetchConnectionCache = true;
 } else {
-  // Only configure WebSocket for non-Vercel environments
-  // Use a try-catch to handle cases where ws might not be available
-  try {
-    // @ts-ignore: ws might not be available in all environments
-    const ws = require("ws");
-    if (typeof WebSocket === 'undefined' && ws) {
-      neonConfig.webSocketConstructor = ws.default || ws;
-    }
-  } catch (e) {
-    // WebSocket not available, but that's OK for Vercel
-    console.warn('[DB] WebSocket module not available, using default configuration');
-  }
+  // Configure WebSocket for non-Vercel environments (Replit, local dev, etc.)
+  neonConfig.webSocketConstructor = ws;
+  console.log('[DB] WebSocket configured for non-Vercel environment');
 }
 
 // Log environment info for debugging
