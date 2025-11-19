@@ -12,14 +12,10 @@ if (!databaseUrl) {
   process.exit(0);
 }
 
-try {
-  log('DATABASE_URL detected — running migrations (drizzle-kit push)');
-  // run drizzle-kit push via npx so it works both with global or local installs
-  execSync('npx drizzle-kit push', { stdio: 'inherit', env: process.env });
-} catch (err) {
-  console.error('[vercel-init] Error running migrations:', err && err.message ? err.message : err);
-  process.exit(1);
-}
+// Skip migrations - tables are already created in the database
+// The drizzle-kit version (0.18.1) doesn't support the 'push' command
+// Tables should be created manually or via SQL scripts before deployment
+log('DATABASE_URL detected — skipping migrations (tables should exist in database)');
 
 // attempt to run compiled seed script if present
 const seedPath = path.resolve(__dirname, '..', 'dist', 'server', 'seed.js');
