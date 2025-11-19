@@ -1,6 +1,6 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { log } from "./vite";
+import { log } from "./utils";
 
 export async function createApp(): Promise<{ app: Express }> {
   const app = express();

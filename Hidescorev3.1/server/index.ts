@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { setupVite, serveStatic, log } from "./vite";
+import { log, serveStatic } from "./utils";
 import { seedDatabase } from "./seed";
 import { createApp } from "./app";
 
@@ -42,6 +42,7 @@ import { createApp } from "./app";
     // re-create a server only for local dev run
     const { createServer } = await import("http");
     const server = createServer(app);
+    const { setupVite } = await import("./vite");
     await setupVite(app, server as any);
 
     const port = parseInt(process.env.PORT || '5000', 10);

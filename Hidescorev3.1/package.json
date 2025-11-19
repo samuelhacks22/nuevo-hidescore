@@ -4,9 +4,9 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "npx vite build && npx esbuild server/app.ts --platform=node --bundle --format=esm --outdir=dist/server --external:express --external:@neondatabase/serverless --external:ws --external:bcryptjs --external:drizzle-orm --external:zod",
-    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "dev": "cross-env NODE_ENV=devloper tsx server/index.ts",
+    "build": "npx vite build && npx esbuild server/index.ts --platform=node --bundle --format=esm --outdir=dist/server --packages=external --external:./vite",
+    "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
     "env:save": "node ./scripts/save-env.js",
     "db:push": "drizzle-kit push",
@@ -53,6 +53,7 @@
     "date-fns": "^3.6.0",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
+    "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.6.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
@@ -102,14 +103,13 @@
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
-    "dotenv": "^17.2.3",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.18.1",
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
-    "vite": "^5.4.20"
+    "vite": "^7.2.2"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
