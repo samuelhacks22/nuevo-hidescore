@@ -1,4 +1,4 @@
-import { 
+import {
   users, movies, series, ratings, comments,
   type User, type InsertUser,
   type Movie, type InsertMovie,
@@ -6,7 +6,7 @@ import {
   type Rating, type InsertRating,
   type Comment, type InsertComment
 } from "@shared/schema";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, and, or, desc, asc, gte, lte, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
@@ -264,8 +264,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserRatingForContent(userId: string, movieId?: string, seriesId?: string): Promise<Rating | undefined> {
-  let query: any = db.select().from(ratings).where(eq(ratings.userId, userId));
-    
+    let query: any = db.select().from(ratings).where(eq(ratings.userId, userId));
+
     if (movieId) {
       query = query.where(eq(ratings.movieId, movieId)) as any;
     } else if (seriesId) {
@@ -278,14 +278,14 @@ export class DatabaseStorage implements IStorage {
 
   async createRating(insertRating: InsertRating): Promise<Rating> {
     const [rating] = await db.insert(ratings).values(insertRating).returning();
-    
+
     // Update average rating and count for the content
     if (insertRating.movieId) {
       await this.updateMovieRatings(insertRating.movieId);
     } else if (insertRating.seriesId) {
       await this.updateSeriesRatings(insertRating.seriesId);
     }
-    
+
     return rating;
   }
 
@@ -295,7 +295,7 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updateData, updatedAt: new Date() })
       .where(eq(ratings.id, id))
       .returning();
-    
+
     if (rating) {
       if (rating.movieId) {
         await this.updateMovieRatings(rating.movieId);
@@ -303,14 +303,14 @@ export class DatabaseStorage implements IStorage {
         await this.updateSeriesRatings(rating.seriesId);
       }
     }
-    
+
     return rating || undefined;
   }
 
   async deleteRating(id: string): Promise<void> {
     const [rating] = await db.select().from(ratings).where(eq(ratings.id, id));
     await db.delete(ratings).where(eq(ratings.id, id));
-    
+
     if (rating) {
       if (rating.movieId) {
         await this.updateMovieRatings(rating.movieId);
@@ -325,7 +325,7 @@ export class DatabaseStorage implements IStorage {
     const avgRating = movieRatings.length > 0
       ? movieRatings.reduce((sum, r) => sum + r.rating, 0) / movieRatings.length
       : 0;
-    
+
     await db
       .update(movies)
       .set({
@@ -341,7 +341,7 @@ export class DatabaseStorage implements IStorage {
     const avgRating = seriesRatings.length > 0
       ? seriesRatings.reduce((sum, r) => sum + r.rating, 0) / seriesRatings.length
       : 0;
-    
+
     await db
       .update(series)
       .set({

@@ -2,9 +2,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { log, serveStatic } from "./utils";
-import { seedDatabase } from "./seed";
-import { createApp } from "./app";
+import { log, serveStatic } from "./utils.js";
+import { seedDatabase } from "./seed.js";
+import { createApp } from "./app.js";
 
 (async () => {
   // Seed database with sample data (only for the long-running server, not in serverless/production)

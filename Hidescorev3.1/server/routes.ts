@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
@@ -56,12 +56,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return null;
     }
   }
-  
+
   // Authentication endpoints
   app.post("/api/auth/login", async (req, res) => {
     try {
       const validated = loginSchema.parse(req.body);
-      
+
       const user = await storage.getUserByEmail(validated.email.trim());
       if (!user) {
         return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const validated = insertUserSchema.parse(req.body);
-      
+
       // Check if email is already taken
       const existing = await storage.getUserByEmail(validated.email);
       if (existing) {
@@ -181,8 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find similar movies based on genre
       const allMovies = await storage.getAllMovies();
       const similar = allMovies
-        .filter(m => 
-          m.id !== movie.id && 
+        .filter(m =>
+          m.id !== movie.id &&
           m.genre.some(g => movie.genre.includes(g))
         )
         .slice(0, 4);
@@ -264,8 +264,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allSeries = await storage.getAllSeries();
       const similar = allSeries
-        .filter(s => 
-          s.id !== series.id && 
+        .filter(s =>
+          s.id !== series.id &&
           s.genre.some(g => series.genre.includes(g))
         )
         .slice(0, 4);
@@ -380,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For now, return trending content as a fallback
       const movies = await storage.getAllMovies({ sortBy: 'rating' });
       const series = await storage.getAllSeries({ sortBy: 'rating' });
-      
+
       const combined = [
         ...movies.slice(0, 4).map(m => ({ ...m, type: 'movie' as const })),
         ...series.slice(0, 4).map(s => ({ ...s, type: 'series' as const })),
@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const movies = await storage.getAllMovies();
       const series = await storage.getAllSeries();
       const users = await storage.getAllUsers();
-      
+
       // Count all ratings
       let totalRatings = 0;
       for (const movie of movies) {

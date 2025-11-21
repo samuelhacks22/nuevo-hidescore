@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "npx vite build && npx esbuild server/index.ts --platform=node --bundle --format=esm --outdir=dist/server --packages=external --external:./vite",
+    "build": "npx vite build && npx esbuild server/index.ts server/app.ts --platform=node --bundle --format=esm --outdir=dist/server --packages=external --external:./vite",
     "start": "cross-env NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
     "env:save": "node ./scripts/save-env.js",
