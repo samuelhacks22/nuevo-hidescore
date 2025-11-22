@@ -1,25 +1,20 @@
+
 import { useMemo } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { ContentCard } from "@/components/ui/ContentCard";
 import type { Movie, Series } from "@shared/schema";
 
 export default function SearchPage() {
   const [location] = useLocation();
+  const searchString = useSearch();
 
   // Parse query parameter from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const q = urlParams.get('q') || '';
-
-  // Also try parsing from location (fallback)
-  const locationParams = new URLSearchParams(location.split('?')[1] || '');
-  const qFromLocation = locationParams.get('q') || '';
-
-  // Use whichever has a value
-  const searchQuery = q || qFromLocation;
+  const urlParams = new URLSearchParams(searchString);
+  const searchQuery = urlParams.get('q') || '';
 
   console.log('SearchPage - location:', location);
-  console.log('SearchPage - window.location.search:', window.location.search);
+  console.log('SearchPage - searchString:', searchString);
   console.log('SearchPage - searchQuery:', searchQuery);
 
   const { data: movies, isLoading: mLoading } = useQuery<Movie[]>({
