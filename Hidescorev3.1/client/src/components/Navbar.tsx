@@ -74,10 +74,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 cursor-pointer group" data-testid="link-home">
-            <Film className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
-            <span className="font-heading font-bold text-2xl">
-              Hide<span className="text-primary">score</span>
-            </span>
+            <img src="/logo.jpg" alt="Hidescore Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -110,8 +107,8 @@ export function Navbar() {
                 data-testid="input-search"
               />
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               size="sm"
               disabled={!searchQuery.trim()}
               data-testid="button-search"
@@ -161,7 +158,7 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>
-              ) : (
+            ) : (
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setLocation('/register')} data-testid="button-register">
                   Registrarse
@@ -199,8 +196,8 @@ export function Navbar() {
                   className="pl-10"
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full"
                 disabled={!searchQuery.trim()}
               >
