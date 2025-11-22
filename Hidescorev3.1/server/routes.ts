@@ -113,6 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/movies", async (req, res) => {
     try {
       const filters = {
+        search: req.query.search as string,
         genre: req.query.genre as string,
         platform: req.query.platform as string,
         yearFrom: req.query.yearFrom ? parseInt(req.query.yearFrom as string) : undefined,
@@ -197,6 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/series", async (req, res) => {
     try {
       const filters = {
+        search: req.query.search as string,
         genre: req.query.genre as string,
         platform: req.query.platform as string,
         yearFrom: req.query.yearFrom ? parseInt(req.query.yearFrom as string) : undefined,

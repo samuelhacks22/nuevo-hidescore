@@ -48,6 +48,7 @@ export interface IStorage {
 }
 
 export interface MovieFilters {
+  search?: string;
   genre?: string;
   platform?: string;
   yearFrom?: number;
@@ -58,6 +59,7 @@ export interface MovieFilters {
 }
 
 export interface SeriesFilters {
+  search?: string;
   genre?: string;
   platform?: string;
   yearFrom?: number;
@@ -99,6 +101,17 @@ export class DatabaseStorage implements IStorage {
     const conditions: any[] = [];
 
     if (filters) {
+      if (filters.search) {
+        const searchTerm = `%${filters.search.toLowerCase()}%`;
+        conditions.push(
+          or(
+            sql`lower(${movies.title}) LIKE ${searchTerm}`,
+            sql`lower(${movies.description}) LIKE ${searchTerm}`,
+            sql`lower(${movies.director}) LIKE ${searchTerm}`,
+            sql`exists (select 1 from unnest(${movies.cast}) as c where lower(c) LIKE ${searchTerm})`
+          )
+        );
+      }
       if (filters.genre && filters.genre !== 'all') {
         conditions.push(sql`${movies.genre} && ARRAY[${filters.genre}]::text[]`);
       }
@@ -177,6 +190,16 @@ export class DatabaseStorage implements IStorage {
     const conditions: any[] = [];
 
     if (filters) {
+      if (filters.search) {
+        const searchTerm = `%${filters.search.toLowerCase()}%`;
+        conditions.push(
+          or(
+            sql`lower(${series.title}) LIKE ${searchTerm}`,
+            sql`lower(${series.description}) LIKE ${searchTerm}`,
+            sql`exists (select 1 from unnest(${series.cast}) as c where lower(c) LIKE ${searchTerm})`
+          )
+        );
+      }
       if (filters.genre && filters.genre !== 'all') {
         conditions.push(sql`${series.genre} && ARRAY[${filters.genre}]::text[]`);
       }
