@@ -448,6 +448,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/admin/movies/:id", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
+    try {
+      const validated = insertMovieSchemaWithLinks.partial().parse(req.body);
+      const movie = await storage.updateMovie(req.params.id, validated);
+      if (!movie) {
+        return res.status(404).json({ error: "Movie not found" });
+      }
+      res.json(movie);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/admin/movies/:id", async (req, res) => {
     const adminUser = await requireAdmin(req, res);
     if (!adminUser) return;
@@ -476,6 +491,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validated = insertSeriesSchemaWithLinks.parse(req.body);
       const series = await storage.createSeries(validated);
+      res.json(series);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/admin/series/:id", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
+    try {
+      const validated = insertSeriesSchemaWithLinks.partial().parse(req.body);
+      const series = await storage.updateSeries(req.params.id, validated);
+      if (!series) {
+        return res.status(404).json({ error: "Series not found" });
+      }
       res.json(series);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
