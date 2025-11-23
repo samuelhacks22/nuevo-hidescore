@@ -174,7 +174,7 @@ export function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden z-50"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             data-testid="button-mobile-menu"
           >
@@ -182,10 +182,10 @@ export function Navbar() {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <form onSubmit={handleSearch} className="mb-4 space-y-2">
+          <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm md:hidden pt-20 px-6 animate-in slide-in-from-top-5 duration-200">
+            <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="mb-6 space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -193,80 +193,95 @@ export function Navbar() {
                   placeholder="Buscar por nombre..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-12 text-lg"
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full h-12 text-lg"
                 disabled={!searchQuery.trim()}
               >
-                <Search className="w-4 h-4 mr-2" />
+                <Search className="w-5 h-5 mr-2" />
                 Buscar
               </Button>
             </form>
+
             <div className="space-y-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "block px-3 py-2 rounded-md font-medium transition-colors",
+                    "block px-4 py-3 rounded-lg text-lg font-medium transition-colors",
                     location === link.href
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
+                      ? "bg-primary/10 text-primary"
+                      : "hover:bg-muted text-foreground"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
+
+              <div className="my-6 border-t border-border" />
+
               {user ? (
                 <>
+                  <div className="px-4 py-2 mb-2">
+                    <p className="text-sm text-muted-foreground">Conectado como</p>
+                    <p className="font-medium truncate">{user.email}</p>
+                  </div>
+
                   {isAdmin && (
                     <Link
                       href="/admin"
-                      className="block px-3 py-2 rounded-md font-medium hover:bg-muted"
+                      className="block px-4 py-3 rounded-lg text-lg font-medium hover:bg-muted"
+                      onClick={() => setMobileMenuOpen(false)}
                     >
+                      <Settings className="w-5 h-5 mr-2 inline-block" />
                       Panel de Administrador
                     </Link>
                   )}
-                  <div className="mt-4 space-y-2">
-                    <div className="px-3 py-1.5">
-                      <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                    </div>
-                    <Link
-                      href="/profile"
-                      className="flex items-center px-3 py-2 rounded-md font-medium hover:bg-muted"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Mi Perfil
-                    </Link>
-                    <button
-                      onClick={() => {
-                        signOut();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="flex items-center w-full text-left px-3 py-2 rounded-md font-medium hover:bg-muted text-destructive"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Cerrar Sesión
-                    </button>
-                  </div>
+
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-3 rounded-lg text-lg font-medium hover:bg-muted"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <User className="w-5 h-5 mr-2 inline-block" />
+                    Mi Perfil
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg text-lg font-medium hover:bg-destructive/10 text-destructive transition-colors"
+                  >
+                    <LogOut className="w-5 h-5 mr-2 inline-block" />
+                    Cerrar Sesión
+                  </button>
                 </>
               ) : (
-                <div className="mt-4 space-y-2">
-                  <Button onClick={() => {
-                    setLocation('/register');
-                    setMobileMenuOpen(false);
-                  }} className="w-full">
+                <div className="space-y-3 mt-4">
+                  <Button
+                    onClick={() => {
+                      setLocation('/register');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full h-12 text-lg"
+                  >
                     Registrarse
                   </Button>
-                  <Button onClick={() => {
-                    setLocation('/login');
-                    setMobileMenuOpen(false);
-                  }} variant="outline" className="w-full">
+                  <Button
+                    onClick={() => {
+                      setLocation('/login');
+                      setMobileMenuOpen(false);
+                    }}
+                    variant="outline"
+                    className="w-full h-12 text-lg"
+                  >
                     Iniciar Sesión
                   </Button>
                 </div>

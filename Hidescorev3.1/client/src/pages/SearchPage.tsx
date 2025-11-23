@@ -56,7 +56,7 @@ export default function SearchPage() {
             <p className="text-muted-foreground mb-6">
               Se encontraron {filtered.length} {filtered.length === 1 ? 'resultado' : 'resultados'}
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filtered.map((item) => (
                 <ContentCard key={item.id} content={{ ...item, type: 'director' in item ? 'movie' : 'series' } as any} />
               ))}

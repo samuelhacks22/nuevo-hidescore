@@ -1,8 +1,8 @@
 import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { 
-  Film, Tv, Calendar, DollarSign, Clock, Users, Globe, 
+import {
+  Film, Tv, Calendar, DollarSign, Clock, Users, Globe,
   MessageSquare, Star, TrendingUp, Edit, Trash2
 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
@@ -36,7 +36,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
   const [editingCommentText, setEditingCommentText] = useState<string>("");
 
   const endpoint = type === 'movie' ? '/api/movies' : '/api/series';
-  
+
   const { data: content, isLoading } = useQuery<Movie | Series>({
     queryKey: [endpoint, id],
   });
@@ -59,7 +59,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
   const userRatingData = ratings?.find(r => r.userId === user?.id);
 
   const ratingMutation = useMutation({
-    mutationFn: (data: { rating: number; review?: string }) => 
+    mutationFn: (data: { rating: number; review?: string }) =>
       apiRequest("POST", `/api/ratings`, {
         userId: user?.id,
         [type === 'movie' ? 'movieId' : 'seriesId']: id,
@@ -205,7 +205,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
               <h1 className="font-heading font-bold text-4xl md:text-5xl mb-4" data-testid="content-title">
                 {content.title}
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <Badge variant="outline" className="text-base">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -497,7 +497,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
         {similar && similar.length > 0 && (
           <div>
             <h2 className="font-heading font-bold text-3xl mb-6">{type === 'movie' ? 'Películas Similares' : 'Series Similares'}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {similar.slice(0, 4).map((item) => (
                 <ContentCard
                   key={item.id}

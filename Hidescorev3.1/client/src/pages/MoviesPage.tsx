@@ -33,14 +33,14 @@ export default function MoviesPage() {
   const [sortBy, setSortBy] = useState<string>("popularity");
 
   const { data: movies, isLoading } = useQuery<Movie[]>({
-    queryKey: ["/api/movies", { 
-      genre: selectedGenre, 
+    queryKey: ["/api/movies", {
+      genre: selectedGenre,
       platform: selectedPlatform,
       yearFrom: yearRange[0],
       yearTo: yearRange[1],
       ratingFrom: ratingRange[0],
       ratingTo: ratingRange[1],
-      sortBy 
+      sortBy
     }],
   });
 
@@ -186,13 +186,13 @@ export default function MoviesPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} className="aspect-[2/3] rounded-lg" />
             ))}
           </div>
         ) : movies && movies.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {movies.map((movie) => (
               <ContentCard
                 key={movie.id}

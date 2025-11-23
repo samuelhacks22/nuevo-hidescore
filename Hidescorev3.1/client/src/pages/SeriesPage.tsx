@@ -32,14 +32,14 @@ export default function SeriesPage() {
   const [sortBy, setSortBy] = useState<string>("popularity");
 
   const { data: series, isLoading } = useQuery<Series[]>({
-    queryKey: ["/api/series", { 
-      genre: selectedGenre, 
+    queryKey: ["/api/series", {
+      genre: selectedGenre,
       platform: selectedPlatform,
       yearFrom: yearRange[0],
       yearTo: yearRange[1],
       ratingFrom: ratingRange[0],
       ratingTo: ratingRange[1],
-      sortBy 
+      sortBy
     }],
   });
 
@@ -179,13 +179,13 @@ export default function SeriesPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} className="aspect-[2/3] rounded-lg" />
             ))}
           </div>
         ) : series && series.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {series.map((s) => (
               <ContentCard
                 key={s.id}
