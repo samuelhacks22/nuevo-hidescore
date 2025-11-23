@@ -184,21 +184,21 @@ export function Navbar() {
 
         {/* Mobile Menu Overlay */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm md:hidden pt-20 px-6 animate-in slide-in-from-top-5 duration-200">
-            <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="mb-6 space-y-2">
+          <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-md md:hidden pt-20 px-6 animate-in slide-in-from-top-5 duration-200 flex flex-col h-screen">
+            <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="mb-6 space-y-2 shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Buscar por nombre..."
+                  placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 text-lg"
+                  className="pl-10 h-12 text-base"
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full h-12 text-lg"
+                className="w-full h-12 text-base font-medium"
                 disabled={!searchQuery.trim()}
               >
                 <Search className="w-5 h-5 mr-2" />
@@ -206,7 +206,7 @@ export function Navbar() {
               </Button>
             </form>
 
-            <div className="space-y-2">
+            <div className="space-y-1 overflow-y-auto pb-20">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -270,7 +270,7 @@ export function Navbar() {
                       setLocation('/register');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full h-12 text-lg"
+                    className="w-full h-12 text-base font-medium"
                   >
                     Registrarse
                   </Button>
@@ -280,7 +280,7 @@ export function Navbar() {
                       setMobileMenuOpen(false);
                     }}
                     variant="outline"
-                    className="w-full h-12 text-lg"
+                    className="w-full h-12 text-base font-medium"
                   >
                     Iniciar Sesión
                   </Button>

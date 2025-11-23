@@ -66,10 +66,10 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
       setLocalComment("");
     },
   });
-  
+
   return (
     <Link href={detailPath}>
-      <Card 
+      <Card
         className={cn(
           "group overflow-hidden border-0 bg-card hover-elevate transition-all duration-200 cursor-pointer",
           "hover:scale-[1.02]",
@@ -96,7 +96,7 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
               )}
             </div>
           )}
-          
+
           {/* Overlay gradient on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
@@ -112,15 +112,15 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
                   </span>
                 </div>
               )}
-              
+
               {/* Platforms */}
               {content.platform.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-wrap gap-1">
                     {content.platform.slice(0, 2).map((platform) => (
-                      <Badge 
-                        key={platform} 
-                        variant="secondary" 
+                      <Badge
+                        key={platform}
+                        variant="secondary"
                         className="text-xs"
                         data-testid={`platform-${platform}`}
                       >
@@ -226,7 +226,7 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
           {/* User rating indicator */}
           {userRating && (
             <div className="absolute top-2 right-2">
-              <Badge 
+              <Badge
                 className="bg-accent text-accent-foreground border-0"
                 data-testid="user-rating-badge"
               >
@@ -238,18 +238,18 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
         </div>
 
         {/* Card Content */}
-        <div className="p-4 space-y-2">
-          <h3 className="font-heading font-semibold text-lg line-clamp-1" data-testid="content-title">
+        <div className="p-3 sm:p-4 space-y-2">
+          <h3 className="font-heading font-semibold text-base sm:text-lg line-clamp-1" data-testid="content-title">
             {content.title}
           </h3>
-          
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+
+          <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground">
             <span data-testid="release-year">{content.releaseYear}</span>
             <div className="flex items-center gap-1">
               {isMovie ? (
-                <Film className="w-4 h-4" />
+                <Film className="w-3 h-3 sm:w-4 sm:h-4" />
               ) : (
-                <Tv className="w-4 h-4" />
+                <Tv className="w-3 h-3 sm:w-4 sm:h-4" />
               )}
               <span className="capitalize">{content.type === 'movie' ? 'Película' : 'Serie'}</span>
             </div>
@@ -259,17 +259,17 @@ export function ContentCard({ content, userRating, className }: ContentCardProps
           {content.genre.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {content.genre.slice(0, 2).map((genre) => (
-                <Badge 
-                  key={genre} 
-                  variant="outline" 
-                  className="text-xs"
+                <Badge
+                  key={genre}
+                  variant="outline"
+                  className="text-[10px] sm:text-xs px-1.5 py-0 sm:px-2.5 sm:py-0.5 h-5 sm:h-auto"
                   data-testid={`genre-${genre}`}
                 >
                   {genre}
                 </Badge>
               ))}
               {content.genre.length > 2 && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0 sm:px-2.5 sm:py-0.5 h-5 sm:h-auto">
                   +{content.genre.length - 2}
                 </Badge>
               )}
