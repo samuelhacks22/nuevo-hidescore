@@ -286,6 +286,15 @@ export function Navbar() {
                   </Button>
                 </div>
               )}
+
+              <Button
+                variant="ghost"
+                className="w-full h-12 text-base font-medium text-muted-foreground hover:text-foreground mt-4 border border-transparent hover:border-border"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <X className="w-5 h-5 mr-2" />
+                Cerrar Menú
+              </Button>
             </div>
           </div>
         )}
