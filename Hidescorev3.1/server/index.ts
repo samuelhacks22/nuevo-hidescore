@@ -5,6 +5,7 @@ dotenv.config();
 import { log, serveStatic } from "./utils.js";
 import { seedDatabase } from "./seed.js";
 import { createApp } from "./app.js";
+import compression from "compression";
 
 (async () => {
   // Seed database with sample data (only for the long-running server, not in serverless/production)
@@ -24,6 +25,7 @@ import { createApp } from "./app.js";
   }
 
   const { app } = await createApp();
+  app.use(compression());
 
   // attach an error handler similar to previous behavior
   app.use((err: any, _req: any, res: any, _next: any) => {

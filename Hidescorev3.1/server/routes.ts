@@ -29,6 +29,13 @@ let generativeModel: any = null;
   }
 })();
 
+// Simple in-memory cache
+const cache = {
+  trendingMovies: { data: null as any, timestamp: 0 },
+  trendingSeries: { data: null as any, timestamp: 0 }
+};
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Helper to require admin by checking a provided user id (no real auth)
@@ -132,10 +139,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/movies/trending", async (req, res) => {
     try {
+      const now = Date.now();
+      if (cache.trendingMovies.data && (now - cache.trendingMovies.timestamp < CACHE_DURATION)) {
+        console.log('[API] Serving trending movies from cache');
+        return res.json(cache.trendingMovies.data);
+      }
+
       console.log('[API] GET /api/movies/trending');
       const movies = await storage.getAllMovies({ sortBy: 'popularity' });
       console.log(`[API] Found ${movies.length} movies`);
-      res.json(movies.slice(0, 12));
+
+      const data = movies.slice(0, 12);
+      cache.trendingMovies = { data, timestamp: now };
+
+      res.json(data);
     } catch (error: any) {
       console.error('[API] Error in /api/movies/trending:', error);
       res.status(500).json({ error: error.message });
@@ -217,10 +234,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/series/trending", async (req, res) => {
     try {
+      const now = Date.now();
+      if (cache.trendingSeries.data && (now - cache.trendingSeries.timestamp < CACHE_DURATION)) {
+        console.log('[API] Serving trending series from cache');
+        return res.json(cache.trendingSeries.data);
+      }
+
       console.log('[API] GET /api/series/trending');
       const series = await storage.getAllSeries({ sortBy: 'popularity' });
       console.log(`[API] Found ${series.length} series`);
-      res.json(series.slice(0, 12));
+
+      const data = series.slice(0, 12);
+      cache.trendingSeries = { data, timestamp: now };
+
+      res.json(data);
     } catch (error: any) {
       console.error('[API] Error in /api/series/trending:', error);
       res.status(500).json({ error: error.message });
