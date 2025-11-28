@@ -56,6 +56,8 @@ export interface MovieFilters {
   ratingFrom?: number;
   ratingTo?: number;
   sortBy?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface SeriesFilters {
@@ -67,6 +69,8 @@ export interface SeriesFilters {
   ratingFrom?: number;
   ratingTo?: number;
   sortBy?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -158,6 +162,14 @@ export class DatabaseStorage implements IStorage {
       query = query.orderBy(desc(movies.ratingCount)) as any;
     }
 
+    // Apply pagination
+    if (filters?.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+    if (filters?.offset) {
+      query = query.offset(filters.offset) as any;
+    }
+
     return await query;
   }
 
@@ -244,6 +256,14 @@ export class DatabaseStorage implements IStorage {
       }
     } else {
       query = query.orderBy(desc(series.ratingCount)) as any;
+    }
+
+    // Apply pagination
+    if (filters?.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+    if (filters?.offset) {
+      query = query.offset(filters.offset) as any;
     }
 
     return await query;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Film, SlidersHorizontal } from "lucide-react";
 import { ContentCard } from "@/components/ui/ContentCard";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,13 @@ export default function MoviesPage() {
   const [sortBy, setSortBy] = useState<string>("popularity");
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  const { data: movies, isLoading } = useQuery<Movie[]>({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading
+  } = useInfiniteQuery<Movie[]>({
     queryKey: ["/api/movies", {
       genre: selectedGenre,
       platform: selectedPlatform,
@@ -42,9 +48,37 @@ export default function MoviesPage() {
       yearTo: yearRange[1],
       ratingFrom: ratingRange[0],
       ratingTo: ratingRange[1],
-      sortBy
+      sortBy,
+      limit: 24
     }],
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 24 ? allPages.length + 1 : undefined;
+    },
+    queryFn: async ({ pageParam }) => {
+      const params = new URLSearchParams({
+        genre: selectedGenre,
+        platform: selectedPlatform,
+        yearFrom: yearRange[0].toString(),
+        yearTo: yearRange[1].toString(),
+        ratingFrom: ratingRange[0].toString(),
+        ratingTo: ratingRange[1].toString(),
+        sortBy,
+        limit: '24',
+        page: (pageParam as number).toString()
+      });
+
+      // Remove 'all' values
+      if (selectedGenre === 'all') params.delete('genre');
+      if (selectedPlatform === 'all') params.delete('platform');
+
+      const res = await fetch(`/api/movies?${params.toString()}`);
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    }
   });
+
+  const movies = data?.pages.flat() || [];
 
   const { data: userRatings } = useQuery<Rating[]>({
     queryKey: ["/api/ratings/user"],
@@ -227,6 +261,20 @@ export default function MoviesPage() {
           <div className="text-center py-16 text-muted-foreground">
             <Film className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p className="text-lg">No se encontraron películas que coincidan con tus filtros</p>
+          </div>
+        )}
+
+        {/* Load More Trigger */}
+        {hasNextPage && (
+          <div className="mt-8 flex justify-center">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "Cargando más..." : "Cargar más películas"}
+            </Button>
           </div>
         )}
       </div>

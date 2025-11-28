@@ -18,10 +18,10 @@ export default function SearchPage() {
   console.log('SearchPage - searchQuery:', searchQuery);
 
   const { data: movies, isLoading: mLoading } = useQuery<Movie[]>({
-    queryKey: ['/api/movies', { search: searchQuery }]
+    queryKey: ['/api/movies', { search: searchQuery, limit: 12 }]
   });
   const { data: series, isLoading: sLoading } = useQuery<Series[]>({
-    queryKey: ['/api/series', { search: searchQuery }]
+    queryKey: ['/api/series', { search: searchQuery, limit: 12 }]
   });
 
   const isLoading = mLoading || sLoading;

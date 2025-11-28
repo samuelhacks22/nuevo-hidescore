@@ -128,6 +128,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ratingFrom: req.query.ratingFrom ? parseFloat(req.query.ratingFrom as string) : undefined,
         ratingTo: req.query.ratingTo ? parseFloat(req.query.ratingTo as string) : undefined,
         sortBy: req.query.sortBy as string,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        offset: req.query.page && req.query.limit ? (parseInt(req.query.page as string) - 1) * parseInt(req.query.limit as string) : undefined,
       };
 
       const movies = await storage.getAllMovies(filters);
@@ -223,6 +225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ratingFrom: req.query.ratingFrom ? parseFloat(req.query.ratingFrom as string) : undefined,
         ratingTo: req.query.ratingTo ? parseFloat(req.query.ratingTo as string) : undefined,
         sortBy: req.query.sortBy as string,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        offset: req.query.page && req.query.limit ? (parseInt(req.query.page as string) - 1) * parseInt(req.query.limit as string) : undefined,
       };
 
       const series = await storage.getAllSeries(filters);
