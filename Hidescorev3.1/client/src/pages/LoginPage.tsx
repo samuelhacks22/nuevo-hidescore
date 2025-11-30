@@ -68,13 +68,23 @@ export function LoginPage() {
             {form.formState.errors.root && (
               <div className="text-red-400 text-center">{form.formState.errors.root.message}</div>
             )}
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={form.formState.isSubmitting}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {form.formState.isSubmitting ? "Iniciando sesión..." : "Login"}
             </Button>
+            <div className="text-center">
+              <Button
+                type="button"
+                variant="link"
+                className="text-gray-400 hover:text-white"
+                onClick={() => setLocation("/forgot-password")}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </div>
           </form>
         </Form>
       </div>

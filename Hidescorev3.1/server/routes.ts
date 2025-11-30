@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
 import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
 (async () => {
@@ -112,6 +113,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(safeUser);
     } catch (error: any) {
       console.error('Error creating user:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if user exists
+        return res.json({ message: "If an account with that email exists, we sent you a reset link." });
+      }
+
+      const token = crypto.randomBytes(20).toString("hex");
+      const expires = new Date(Date.now() + 3600000); // 1 hour
+
+      await storage.updateUser(user.id, {
+        resetPasswordToken: token,
+        resetPasswordExpires: expires,
+      });
+
+      // In a real app, send email here. For now, log it.
+      const resetLink = `http://${req.headers.host}/reset-password?token=${token}`;
+      console.log("----------------------------------------");
+      console.log("PASSWORD RESET LINK:", resetLink);
+      console.log("----------------------------------------");
+
+      res.json({ message: "If an account with that email exists, we sent you a reset link." });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      if (!token || !password) {
+        return res.status(400).json({ error: "Token and password are required" });
+      }
+
+      const user = await storage.getUserByResetToken(token);
+      if (!user) {
+        return res.status(400).json({ error: "Password reset token is invalid or has expired." });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      await storage.updateUser(user.id, {
+        passwordHash,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      });
+
+      res.json({ message: "Password has been reset." });
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });

@@ -7,7 +7,7 @@ import {
   type Comment, type InsertComment
 } from "@shared/schema";
 import { db } from "./db.js";
-import { eq, and, or, desc, asc, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, or, desc, asc, gte, lte, gt, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -15,6 +15,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  updateUser(id: string, user: Partial<User>): Promise<User | undefined>;
+  getUserByResetToken(token: string): Promise<User | undefined>;
 
   // Movies
   getMovie(id: string): Promise<Movie | undefined>;
@@ -92,6 +94,28 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async updateUser(id: string, updateData: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getUserByResetToken(token: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.resetPasswordToken, token),
+          gt(users.resetPasswordExpires, new Date())
+        )
+      );
+    return user || undefined;
   }
 
   // Movies

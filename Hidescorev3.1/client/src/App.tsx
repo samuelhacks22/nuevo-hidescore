@@ -17,30 +17,34 @@ const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage").then(mod => ({ default: (mod as any).LoginPage })));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(mod => ({ default: (mod as any).RegisterPage })));
 const NotFound = lazy(() => import("@/pages/not-found"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage").then(mod => ({ default: (mod as any).ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage").then(mod => ({ default: (mod as any).ResetPasswordPage })));
 
 function Router() {
   return (
     <>
       <Navbar />
       <Suspense fallback={<div className="p-8">Cargando...</div>}>
-      <Switch>
-        <Route path="/" component={HomePage} />
-        <Route path="/movies" component={MoviesPage} />
-        <Route path="/series" component={SeriesPage} />
-        <Route path="/movie/:id">
-          {() => <ContentDetailPage type="movie" />}
-        </Route>
-        <Route path="/series/:id">
-          {() => <ContentDetailPage type="series" />}
-        </Route>
-        <Route path="/discover" component={DiscoverPage} />
-        <Route path="/search" component={SearchPage} />
-        <Route path="/admin" component={AdminPage} />
-  <Route path="/login" component={LoginPage} />
-  <Route path="/register" component={RegisterPage} />
-        <Route path="/profile" component={ProfilePage} />
-        <Route component={NotFound} />
-      </Switch>
+        <Switch>
+          <Route path="/" component={HomePage} />
+          <Route path="/movies" component={MoviesPage} />
+          <Route path="/series" component={SeriesPage} />
+          <Route path="/movie/:id">
+            {() => <ContentDetailPage type="movie" />}
+          </Route>
+          <Route path="/series/:id">
+            {() => <ContentDetailPage type="series" />}
+          </Route>
+          <Route path="/discover" component={DiscoverPage} />
+          <Route path="/search" component={SearchPage} />
+          <Route path="/admin" component={AdminPage} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/register" component={RegisterPage} />
+          <Route path="/forgot-password" component={ForgotPasswordPage} />
+          <Route path="/reset-password" component={ResetPasswordPage} />
+          <Route path="/profile" component={ProfilePage} />
+          <Route component={NotFound} />
+        </Switch>
       </Suspense>
     </>
   );
