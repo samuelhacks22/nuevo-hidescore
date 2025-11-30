@@ -354,7 +354,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
               {userRatingData ? (
                 <div className="space-y-2">
                   {!ratingEditMode ? (
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <StarRating rating={userRatingData.rating} size="lg" />
                         {userRatingData.review && (
@@ -451,7 +451,7 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="font-medium">Usuario</span>
                         <span className="text-sm text-muted-foreground">
                           {formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })}
