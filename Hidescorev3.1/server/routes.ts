@@ -4,6 +4,7 @@ import { storage } from "./storage.js";
 import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { sendPasswordResetEmail } from "./email.js";
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
 (async () => {
@@ -138,11 +139,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         resetPasswordExpires: expires,
       });
 
-      // In a real app, send email here. For now, log it.
+      // Send password reset email
       const resetLink = `http://${req.headers.host}/reset-password?token=${token}`;
-      console.log("----------------------------------------");
-      console.log("PASSWORD RESET LINK:", resetLink);
-      console.log("----------------------------------------");
+      try {
+        await sendPasswordResetEmail(user.email, resetLink);
+      } catch (emailError) {
+        console.error("Failed to send password reset email:", emailError);
+        // Continue anyway - the token is still valid
+      }
 
       res.json({ message: "If an account with that email exists, we sent you a reset link." });
     } catch (error: any) {
