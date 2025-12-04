@@ -75,16 +75,7 @@ export function LoginPage() {
             >
               {form.formState.isSubmitting ? "Iniciando sesión..." : "Login"}
             </Button>
-            <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                className="text-gray-400 hover:text-white"
-                onClick={() => setLocation("/forgot-password")}
-              >
-                ¿Olvidaste tu contraseña?
-              </Button>
-            </div>
+
           </form>
         </Form>
       </div>

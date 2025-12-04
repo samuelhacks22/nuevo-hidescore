@@ -4,7 +4,7 @@ import { storage } from "./storage.js";
 import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "./email.js";
+
 // Try to dynamically load Google Generative AI; if not available, use a safe stub.
 let generativeModel: any = null;
 (async () => {
@@ -118,68 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/forgot-password", async (req, res) => {
-    try {
-      const { email } = req.body;
-      if (!email) {
-        return res.status(400).json({ error: "Email is required" });
-      }
 
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
-        // Don't reveal if user exists
-        return res.json({ message: "If an account with that email exists, we sent you a reset link." });
-      }
-
-      const token = crypto.randomBytes(20).toString("hex");
-      const expires = new Date(Date.now() + 3600000); // 1 hour
-
-      await storage.updateUser(user.id, {
-        resetPasswordToken: token,
-        resetPasswordExpires: expires,
-      });
-
-      // Send password reset email
-      const resetLink = `http://${req.headers.host}/reset-password?token=${token}`;
-      try {
-        await sendPasswordResetEmail(user.email, resetLink);
-      } catch (emailError) {
-        console.error("Failed to send password reset email:", emailError);
-        // Continue anyway - the token is still valid
-      }
-
-      res.json({ message: "If an account with that email exists, we sent you a reset link." });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.post("/api/auth/reset-password", async (req, res) => {
-    try {
-      const { token, password } = req.body;
-      if (!token || !password) {
-        return res.status(400).json({ error: "Token and password are required" });
-      }
-
-      const user = await storage.getUserByResetToken(token);
-      if (!user) {
-        return res.status(400).json({ error: "Password reset token is invalid or has expired." });
-      }
-
-      const salt = await bcrypt.genSalt(10);
-      const passwordHash = await bcrypt.hash(password, salt);
-
-      await storage.updateUser(user.id, {
-        passwordHash,
-        resetPasswordToken: null,
-        resetPasswordExpires: null,
-      });
-
-      res.json({ message: "Password has been reset." });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
 
   // Movies endpoints
   app.get("/api/movies", async (req, res) => {

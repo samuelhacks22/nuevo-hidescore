@@ -17,8 +17,7 @@ const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage").then(mod => ({ default: (mod as any).LoginPage })));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage").then(mod => ({ default: (mod as any).RegisterPage })));
 const NotFound = lazy(() => import("@/pages/not-found"));
-const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage").then(mod => ({ default: (mod as any).ForgotPasswordPage })));
-const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage").then(mod => ({ default: (mod as any).ResetPasswordPage })));
+
 
 function Router() {
   return (
@@ -40,8 +39,7 @@ function Router() {
           <Route path="/admin" component={AdminPage} />
           <Route path="/login" component={LoginPage} />
           <Route path="/register" component={RegisterPage} />
-          <Route path="/forgot-password" component={ForgotPasswordPage} />
-          <Route path="/reset-password" component={ResetPasswordPage} />
+
           <Route path="/profile" component={ProfilePage} />
           <Route component={NotFound} />
         </Switch>

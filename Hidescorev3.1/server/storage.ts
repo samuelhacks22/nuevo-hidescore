@@ -16,7 +16,7 @@ export interface IStorage {
   getUserById(id: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: string, user: Partial<User>): Promise<User | undefined>;
-  getUserByResetToken(token: string): Promise<User | undefined>;
+
 
   // Movies
   getMovie(id: string): Promise<Movie | undefined>;
@@ -105,18 +105,7 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByResetToken(token: string): Promise<User | undefined> {
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(
-        and(
-          eq(users.resetPasswordToken, token),
-          gt(users.resetPasswordExpires, new Date())
-        )
-      );
-    return user || undefined;
-  }
+
 
   // Movies
   async getMovie(id: string): Promise<Movie | undefined> {
