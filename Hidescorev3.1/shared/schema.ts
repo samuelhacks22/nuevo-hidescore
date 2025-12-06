@@ -92,6 +92,22 @@ export const comments = pgTable("comments", {
   checkCommentTarget: sql`CHECK ((${table.movieId} IS NOT NULL AND ${table.seriesId} IS NULL) OR (${table.movieId} IS NULL AND ${table.seriesId} IS NOT NULL))`,
 }));
 
+// Reports table
+export const reports = pgTable("reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  movieId: varchar("movie_id").references(() => movies.id, { onDelete: "cascade" }),
+  seriesId: varchar("series_id").references(() => series.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  details: text("details"),
+  status: text("status").notNull().default("pending"), // pending, resolved, dismissed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => ({
+  // Ensure either movieId or seriesId is set, but not both
+  checkReportTarget: sql`CHECK ((${table.movieId} IS NOT NULL AND ${table.seriesId} IS NULL) OR (${table.movieId} IS NULL AND ${table.seriesId} IS NOT NULL))`,
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   ratings: many(ratings),
@@ -134,6 +150,21 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   }),
   series: one(series, {
     fields: [comments.seriesId],
+    references: [series.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  user: one(users, {
+    fields: [reports.userId],
+    references: [users.id],
+  }),
+  movie: one(movies, {
+    fields: [reports.movieId],
+    references: [movies.id],
+  }),
+  series: one(series, {
+    fields: [reports.seriesId],
     references: [series.id],
   }),
 }));
@@ -195,6 +226,13 @@ export const insertCommentSchema = createInsertSchema(comments).omit({
   updatedAt: true,
 });
 
+export const insertReportSchema = createInsertSchema(reports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -210,6 +248,9 @@ export type InsertRating = z.infer<typeof insertRatingSchema>;
 
 export type Comment = typeof comments.$inferSelect;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
+
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = z.infer<typeof insertReportSchema>;
 
 // Helper types for combined content
 export type Content = (Movie | Series) & { type: 'movie' | 'series' };

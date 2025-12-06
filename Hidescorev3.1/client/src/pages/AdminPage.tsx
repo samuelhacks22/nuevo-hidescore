@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3, Pencil } from "lucide-react";
+import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3, Pencil, Flag, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +18,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { MovieDialog } from "@/components/admin/MovieDialog";
 import { SeriesDialog } from "@/components/admin/SeriesDialog";
 import { UserDialog } from "@/components/admin/UserDialog";
-import type { Movie, Series, User } from "@shared/schema";
+import type { Movie, Series, User, Report } from "@shared/schema";
 
 export default function AdminPage() {
   const { toast } = useToast();
@@ -39,6 +39,10 @@ export default function AdminPage() {
 
   const { data: users } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
+  });
+
+  const { data: reports } = useQuery<Report[]>({
+    queryKey: ["/api/admin/reports"],
   });
 
   const { data: stats } = useQuery<{
@@ -67,6 +71,15 @@ export default function AdminPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
       toast({ title: "Usuario eliminado exitosamente" });
+    },
+  });
+
+  const updateReportMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      apiRequest("PUT", `/api/admin/reports/${id}`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/reports"] });
+      toast({ title: "Reporte actualizado exitosamente" });
     },
   });
 
@@ -184,7 +197,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-24 pb-16" >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -255,13 +268,15 @@ export default function AdminPage() {
           <TabsList>
             <TabsTrigger value="movies">Películas</TabsTrigger>
             <TabsTrigger value="series">Series</TabsTrigger>
+            <TabsTrigger value="series">Series</TabsTrigger>
             <TabsTrigger value="users">Usuarios</TabsTrigger>
+            <TabsTrigger value="reports">Reportes</TabsTrigger>
           </TabsList>
 
           <TabsContent value="movies" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Películas</h2>
-              <Button 
+              <Button
                 onClick={() => {
                   setMovieToEdit(undefined);
                   setMovieDialogOpen(true);
@@ -342,7 +357,7 @@ export default function AdminPage() {
           <TabsContent value="series" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Series</h2>
-              <Button 
+              <Button
                 onClick={() => {
                   setSeriesToEdit(undefined);
                   setSeriesDialogOpen(true);
@@ -421,7 +436,7 @@ export default function AdminPage() {
           <TabsContent value="users" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Usuarios</h2>
-              <Button 
+              <Button
                 onClick={() => {
                   setUserToEdit(undefined);
                   setUserDialogOpen(true);
@@ -496,13 +511,98 @@ export default function AdminPage() {
               </Table>
             </Card>
           </TabsContent>
+
+          <TabsContent value="reports" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="font-heading font-semibold text-2xl">Gestionar Reportes</h2>
+            </div>
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Contenido</TableHead>
+                    <TableHead>Razón</TableHead>
+                    <TableHead>Detalles</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reports && reports.length > 0 ? (
+                    reports.map((report) => (
+                      <TableRow key={report.id}>
+                        <TableCell>
+                          {report.movieId ? <Film className="w-4 h-4" /> : <Tv className="w-4 h-4" />}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {report.movieId ?
+                            movies?.find(m => m.id === report.movieId)?.title :
+                            series?.find(s => s.id === report.seriesId)?.title}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{report.reason}</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate" title={report.details || ""}>
+                          {report.details}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            report.status === 'resolved' ? 'default' :
+                              report.status === 'dismissed' ? 'secondary' : 'destructive'
+                          }>
+                            {report.status === 'resolved' ? 'Resuelto' :
+                              report.status === 'dismissed' ? 'Descartado' : 'Pendiente'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(report.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {report.status === 'pending' && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => updateReportMutation.mutate({ id: report.id, status: 'resolved' })}
+                                  title="Marcar como resuelto"
+                                >
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => updateReportMutation.mutate({ id: report.id, status: 'dismissed' })}
+                                  title="Descartar"
+                                >
+                                  <XCircle className="w-4 h-4 text-gray-500" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        No hay reportes pendientes
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
       {/* Dialogs */}
-      <MovieDialog 
-        open={movieDialogOpen} 
-        onOpenChange={setMovieDialogOpen} 
+      <MovieDialog
+        open={movieDialogOpen}
+        onOpenChange={setMovieDialogOpen}
         onSubmit={async (data) => {
           const movieData = {
             ...data,
@@ -521,12 +621,13 @@ export default function AdminPage() {
           } else {
             await createMovieMutation.mutateAsync(movieData);
           }
-        }}
+        }
+        }
         movie={movieToEdit}
       />
 
-      <SeriesDialog 
-        open={seriesDialogOpen} 
+      <SeriesDialog
+        open={seriesDialogOpen}
         onOpenChange={setSeriesDialogOpen}
         onSubmit={async (data) => {
           const seriesData = {
@@ -548,10 +649,10 @@ export default function AdminPage() {
         series={seriesToEdit}
       />
 
-  {/* BulkLinksDialog removed - per-item MovieDialog / SeriesDialog persist platform links */}
+      {/* BulkLinksDialog removed - per-item MovieDialog / SeriesDialog persist platform links */}
 
-      <UserDialog 
-        open={userDialogOpen} 
+      <UserDialog
+        open={userDialogOpen}
         onOpenChange={setUserDialogOpen}
         onSubmit={async (data) => {
           if (userToEdit) {
@@ -562,6 +663,6 @@ export default function AdminPage() {
         }}
         user={userToEdit}
       />
-    </div>
+    </div >
   );
 }

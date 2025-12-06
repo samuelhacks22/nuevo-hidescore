@@ -4,7 +4,9 @@ import {
   type Movie, type InsertMovie,
   type Series, type InsertSeries,
   type Rating, type InsertRating,
-  type Comment, type InsertComment
+  type Comment, type InsertComment,
+  type Report, type InsertReport,
+  reports
 } from "@shared/schema";
 import { db } from "./db.js";
 import { eq, and, or, desc, asc, gte, lte, gt, sql, inArray } from "drizzle-orm";
@@ -47,6 +49,11 @@ export interface IStorage {
   getCommentsByUser(userId: string): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
   deleteComment(id: string): Promise<void>;
+
+  // Reports
+  createReport(report: InsertReport): Promise<Report>;
+  getAllReports(): Promise<Report[]>;
+  updateReport(id: string, update: Partial<Report>): Promise<Report | undefined>;
 }
 
 export interface MovieFilters {
@@ -443,6 +450,25 @@ export class DatabaseStorage implements IStorage {
 
   async deleteComment(id: string): Promise<void> {
     await db.delete(comments).where(eq(comments.id, id));
+  }
+
+  // Reports
+  async createReport(insertReport: InsertReport): Promise<Report> {
+    const [report] = await db.insert(reports).values(insertReport).returning();
+    return report;
+  }
+
+  async getAllReports(): Promise<Report[]> {
+    return await db.select().from(reports).orderBy(desc(reports.createdAt));
+  }
+
+  async updateReport(id: string, updateData: Partial<Report>): Promise<Report | undefined> {
+    const [report] = await db
+      .update(reports)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(reports.id, id))
+      .returning();
+    return report || undefined;
   }
 }
 

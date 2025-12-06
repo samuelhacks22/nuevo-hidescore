@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { StarRating } from "@/components/StarRating";
 import { ContentCard } from "@/components/ui/ContentCard";
+import { ReportDialog } from "@/components/ReportDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -202,9 +203,16 @@ export default function ContentDetailPage({ type }: { type: 'movie' | 'series' }
           {/* Details */}
           <div className="md:col-span-2 space-y-6">
             <div>
-              <h1 className="font-heading font-bold text-4xl md:text-5xl mb-4" data-testid="content-title">
-                {content.title}
-              </h1>
+              <div className="flex justify-between items-start gap-4">
+                <h1 className="font-heading font-bold text-4xl md:text-5xl mb-4" data-testid="content-title">
+                  {content.title}
+                </h1>
+                <ReportDialog
+                  movieId={isMovie ? content.id : undefined}
+                  seriesId={!isMovie ? content.id : undefined}
+                  title={content.title}
+                />
+              </div>
 
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <Badge variant="outline" className="text-base">

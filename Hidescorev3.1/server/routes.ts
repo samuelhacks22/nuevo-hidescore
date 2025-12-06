@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage.js";
-import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, loginSchema } from "@shared/schema";
+import { insertUserSchema, insertMovieSchema, insertSeriesSchema, insertMovieSchemaWithLinks, insertSeriesSchemaWithLinks, insertRatingSchema, insertCommentSchema, insertReportSchema, loginSchema } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
@@ -409,6 +409,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reports endpoints
+  app.post("/api/reports", async (req, res) => {
+    try {
+      const userId = (req.header?.('x-user-id') || req.body?.userId || req.query?.userId) as string | undefined;
+      if (!userId) return res.status(401).json({ error: 'Authentication required' });
+
+      const validated = insertReportSchema.parse({ ...req.body, userId });
+      const report = await storage.createReport(validated);
+      res.json(report);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
   // Recommendations endpoint (AI-powered, stub for now)
   app.get("/api/recommendations", async (req, res) => {
     try {
@@ -575,6 +589,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(mapped);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/admin/reports", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
+    try {
+      const reports = await storage.getAllReports();
+      res.json(reports);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/admin/reports/:id", async (req, res) => {
+    const adminUser = await requireAdmin(req, res);
+    if (!adminUser) return;
+    try {
+      const report = await storage.updateReport(req.params.id, req.body);
+      if (!report) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+      res.json(report);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
   });
 
