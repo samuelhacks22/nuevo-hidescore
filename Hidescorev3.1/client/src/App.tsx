@@ -48,11 +48,14 @@ function Router() {
   );
 }
 
+import { SessionTimeout } from "@/components/SessionTimeout";
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
+          <SessionTimeout />
           <Toaster />
           <Router />
         </TooltipProvider>
