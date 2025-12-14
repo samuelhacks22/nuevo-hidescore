@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3, Pencil, Flag, CheckCircle, XCircle } from "lucide-react";
+import { Settings, Film, Tv, Users, Plus, Trash2, BarChart3, Pencil, Flag, CheckCircle, XCircle, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -194,6 +196,43 @@ export default function AdminPage() {
         deleteContentMutation.mutate({ type, id });
       }
     }
+  };
+
+  const exportReportsToPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Reportes de Contenido", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    const date = new Date().toLocaleDateString();
+    doc.text(`Fecha: ${date}`, 14, 30);
+
+    const tableColumn = ["ID", "Tipo", "Contenido", "Razón", "Detalles", "Estado", "Fecha"];
+    const tableRows = reports?.map(report => {
+      const type = report.movieId ? "Película" : "Serie";
+      const content = report.movieId
+        ? movies?.find(m => m.id === report.movieId)?.title
+        : series?.find(s => s.id === report.seriesId)?.title;
+
+      return [
+        report.id.substring(0, 8),
+        type,
+        content || "Desconocido",
+        report.reason,
+        report.details || "",
+        report.status === 'resolved' ? 'Resuelto' : report.status === 'dismissed' ? 'Descartado' : 'Pendiente',
+        new Date(report.createdAt).toLocaleDateString()
+      ];
+    }) || [];
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 40,
+    });
+
+    doc.save(`reportes_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -515,6 +554,10 @@ export default function AdminPage() {
           <TabsContent value="reports" className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="font-heading font-semibold text-2xl">Gestionar Reportes</h2>
+              <Button onClick={exportReportsToPDF} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Exportar PDF
+              </Button>
             </div>
             <Card>
               <Table>
